@@ -387,7 +387,7 @@ Avec $e : (x, y) \mapsto H(\tau^x, y)$. Cette fonction de coût est naturellemen
 
 \section{Descente du gradient}
 
-Étant donné une fonction de coût $E$, l'objectif de l'apprentissage est de déterminer les poids permettant de minimiser $E$. Dans l'idéal, il faudrait pouvoir exprimer $E$ en fonction des poids, dériver $E$ par rapport à chaque poids puis chercher les valeurs des poids atteignant les minimas. Malheureusement, dans la plupart des cas, il est impossible d'avoir de telles solutions analytiques.
+Étant donnée une fonction de coût $E$, l'objectif de l'apprentissage est de déterminer les poids permettant de minimiser $E$. Dans l'idéal, il faudrait pouvoir exprimer $E$ en fonction des poids, dériver $E$ par rapport à chaque poids puis chercher les valeurs des poids atteignant les minimas. Malheureusement, dans la plupart des cas, il est impossible d'avoir de telles solutions analytiques.
 
 Une réponse à ce problème est la descente du gradient. Le principe est simple, il s'agit d'un procédé itératif consistant à modifier légèrement les valeurs des poids afin qu'à chaque étape $E$ décroisse.  En notant, $\theta$ le vecteur contenant les poids de tous les neurones du réseau. La valeur de ces poids changera à chaque itération, par conséquent, notons $\theta(t)$ la valeur de $\theta$ à l'itération $t$. La direction selon laquelle $E$ augmente le plus est $\frac{\partial E}{\partial \theta}$, la direction selon laquelle $E$ décroît le plus est donc $-\frac{\partial E}{\partial \theta}$. Si les poids sont modifiés en se déplaçant dans cette direction d'un pas $\eta(t)$ assez petit, le coût diminuera. L'équation d'évolution est donnée par \ref{mise_a_jour_poids}.
 
