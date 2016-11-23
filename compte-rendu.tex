@@ -455,7 +455,6 @@ Finalement, en utilisant les formules \ref{dEdw}, \ref{formule_retropropagation}
 \EndProcedure
 \end{algorithmic} 
 \caption{Algorithme de rétropropagation du gradient dans un réseau de neurone feedforward.}
-\label{propagation_memoisation}
 \end{algorithm}
 
 Cet algorithme utilise la mémoïsation afin de ne pas calculer plusieurs fois les dérivées pour un neurone. On peut remarquer que cet algorithme est très similaire à celui de la propagation. Pour des raisons similaires, le coût temporel de la rétropropagation est aussi en $O(|V|+|A|)$.
