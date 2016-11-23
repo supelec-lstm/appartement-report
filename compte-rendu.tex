@@ -214,7 +214,7 @@ Ainsi, un premier algorithme naïf est :
 \EndFor
 \EndProcedure
 \end{algorithmic} 
-\caption{Algorithme d'évaluation d'un réseau de neurone feedforward utilisant la mémoïsation afin de ne pas recalculer plusieurs fois la sortie d'un neurone.}
+\caption{Algorithme naïf d'évaluation d'un réseau de neurone feedforward. Il prend en entrée un réseau de neurone et un vecteur d'entrée pour le réseau de neurone.}
 \end{algorithm}
 
 Cette version n'est pas du tout efficace, elle calcule plusieurs fois la sortie de chaque neurone. Si le graphe est densément connecté, l'algorithme aura un coût temporel extrêmement élevé. Une amélioration simple consiste à rajouter de la mémoïsation afin de garantir que la sortie de chaque neurone sera calculée au plus une fois. Le pseudo-code de cet algorithme corresponde à l'algorithme \ref{propagation_memoisation}.
@@ -241,7 +241,7 @@ Cette version n'est pas du tout efficace, elle calcule plusieurs fois la sortie 
 \EndFor
 \EndProcedure
 \end{algorithmic} 
-\caption{Algorithme naïf d'évaluation d'un réseau de neurone feedforward. Il prend en entrée un réseau de neurone et un vecteur d'entrée pour le réseau de neurone.}
+\caption{Algorithme d'évaluation d'un réseau de neurone feedforward utilisant la mémoïsation afin de ne pas recalculer plusieurs fois la sortie d'un neurone.}
 \label{propagation_memoisation}
 \end{algorithm}
 
@@ -446,7 +446,7 @@ Finalement, en utilisant les formules \ref{dEdw}, \ref{formule_retropropagation}
 \State Appeler $evaluer\_reseau(\mathcal{N}(V, A, V_{in}, V_{out}, f), x)$ et récupérer les entrées et sorties de chaque neurone
 \State Initialiser un tableau $dejaCalculé$ de longueur $|V|$ à $faux$.
 \For{$i \in V_{out}$}
-	\State Calculer $\frac{\partial E}{\partial y_i}$
+	\State Calculer $\frac{\partial E}{\par	tial y_i}$
 	\State $déjàCalculé_i \leftarrow vrai$ 
 \EndFor
 \For{$i \in V$}
