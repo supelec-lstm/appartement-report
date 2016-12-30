@@ -577,4 +577,48 @@ L'architecture en Graphe de Calcul donne de très bons résultats du point de vu
 
 \chapter{Études des paramètres}
 
+\chapter{Réseaux de neurones récurrents}
+\section{Motivation}
+Nous avons pu voir que les réseaux feedforward peuvent être utilisés afin d'appendre à générer la sortie voulu en fonction de l'entrée du réseau. 
+Néanmoins, ces réseaux sont limités à des entrées et des sorties de tailles fixes. De plus il ne peuvent gérer des réseaux présentant des boucles. On utilise alors des réseaux récurrents qui permettent un traitement plus efficace des séquences de données. On pourra ainsi prévoir la suite d'une séquence.
+\bigbreak
+Nous nous intéresserons à deux algorithmes permettant l'apprentissage des réseaux récurrents : Real Time Recurrent Learning (RTRL) et Back Propagation Through Time (BPTT).
+
+Dans un premier temps, nous comparerons ces algorithmes sur l'apprentissage de la grammaire de Reber, ayant un nombre d'états fini. Nous utiliserons la grammaire simple présentée sur la figure \ref{Grammaire de Reber simple}.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{images/reber_simple.png}
+\caption{Grammaire de Reber simple}
+\label{Grammaire de Reber simple}
+\end{center}
+\end{figure}
+
+A l'aide de cette grammaire, nous créons un automate permettant de générer deux ensembles de mots afin d'entraîner et de tester notre futur réseau. L'objectif du réseau sera alors d'apprendre cette grammaire afin de prédire les caractères possibles après un caractère donné.
+
+\bigbreak
+L'étape suivante consistera à tester les algorithmes sur l'apprentissage de la grammaire de Reber symmétrique présentée sur la figure \ref{Grammaire de Reber symmétrique}.  
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.5]{images/reber_symmetrique.png}
+\caption{Grammaire de Reber symmétrique}
+\label{Grammaire de Reber symmétrique}
+\end{center}
+\end{figure}
+
+Dans cette situation, le réseau devra être capable de se souvenir d'un état passé (T ou P) afin de prédire le nouvel état (T ou P). Cet état passé pourra être plus ou moins lointain en fonction de la taille de la grammaire de Reber insérée au milieu. 
+\bigbreak
+\bigbreak
+Enfin, nous appliquerons ces deux algorithmes à l'apprentissage de textes de Shakespeare. L'objectif sera alors de générer un texte anglais cohérent.
+\section{Deux algorithmes}
+\subsection{Real Time Recurrent Learning (RTRL)}
+\subsection{Back Propagation Through Time (BPTT)}
+\section{Implémentation de RTRL}
+\subsection{Principe de fonctionnement}
+\subsection{Résultats}
+\section{Implémentation de BPTT}
+\subsection{Principe de fonctionnement}
+\subsection{Résultats}
+\section{Comparaison des deux algorithmes}
+
 \end{document}
