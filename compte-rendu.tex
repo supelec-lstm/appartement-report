@@ -510,7 +510,12 @@ Cela a permis d'étudier et d'assurer le bon fonctionnement de l'implémentation
 
 Des premiers tests ont été réalisés avec un réseau avec une couche cachée de deux neurones. Les résultats sont alors plutôt mauvais : alors que théoriquement le XOR est réalisable avec cette architecture, nous avons pu observer que lors de l'exécution de l'algorithme, la descente du gradient a tendance à se bloquer dans un minimum local de la fonction de coût. 
 
-->figure de la fonction de coût qui se bloque, séance du 29/09
+\begin{figure}[!h]
+\centering
+\input{"images/"}
+\caption{fonction de coût bloquée dans un minimum local}
+\label{xor_cout_bloque}
+\end{figure}
 
 Nous avons alors pu remarquer que même en modifiant les différents paramètres, (valeurs initiales des poids, learning rate ou les fonctions d'activation), cela restait inefficace, et les résultats obtenus loin de ce que l'on recherchait.
 
@@ -672,54 +677,5 @@ Enfin, nous appliquerons ces deux algorithmes à l'apprentissage de textes de Sh
 \subsection{Principe de fonctionnement}
 \subsection{Résultats}
 \section{Comparaison des deux algorithmes}
-=======
-\section{Approche du problème}
-
-L'implémentation basée sur les graphes de calcul nous a permis de réaliser des tests sur les deux exemples introduits précédemment : XOR et MNIST. \`A travers de nombreux tests, nous avons souhaité étudier l'influence des paramètres de l'algorithme sur ses performances, c'est-à-dire sur sa précision et sa rapidité.
-\medbreak
-Il existe sept paramètres que l'on peut définir pour un réseau de neurones :
-\begin{itemize}
-\item l'architecture du réseau
-\item le prétraitement des données
-\item l'initialisation des poids
-\item le choix des fonctions d'activations
-\item le choix de la fonction de coût
-\item la taille des batchs et le nombre de passage
-\item le taux d'apprentissage
-\end{itemize}
-\medbreak
-L'influence d'un paramètre n'étant bien évidemment pas indépendante ni des autres paramètres ni du problème considéré, il devient rapidement délicat d'obtenir des résultats robustes. En effet, il est impossible de réaliser des mesures en faisant varier sept variables en même temps, tout en effectuant des répétitions à chaque fois pour s'assurer de la précision des relevés. Pour s'affranchir de cette difficulté, nous avons choisi de ne faire varier qu'un seul paramètre à la fois en l'intégrant dans une configuration apportant des résultats acceptables. L'influence du paramètre étudié sur plusieurs configurations permet alors d'interpoler une estimation de son comportement général.
-C'est donc ainsi que nous avons pu déterminer des éléments permettant de comprendre les rôles de ces paramètres et de les choisir pour optimiser l'efficacité d'un réseau de neurones. Ce sont ces éléments qui vont être présentés dans la suite de cette partie.
-
-\section{\'Etude du XOR}
-
-Dans un premier temps, nous avons effectués plusieurs tests sur un exemple très simple : XOR.
-Quelques résultats ont déjà été présentés en partie \ref{resultat_premiere_implementation}. Ils vont être rapelés et détaillés dans cette partie.
-
-
-\section{\'Etude de MNIST}
-\subsection{Architecture du réseau}
-Le nombre de couches cachées d'un réseau de neurone ainsi que leur composition constitue l'architecture de ce réseau.
-
-
-\subsection{Prétraitement des données}
-
-
-\subsection{Initialisation des poids}
-Avant le lancement de l'algorithme sur un réseau de neurone, il est nécessaire d'initialiser les poids.	L'usage le plus courant est de les initialiser aléatoirement. Cependant, le choix de la distribution aléatoire n'est pas forcément évident. En effet, on peut choisir d'utiliser une distribution uniforme, une distribution gaussienne ou tout autre type de distribution aléatoire avec des paramètres variables.
-
-
-\subsection{Choix des fonctions d'activations}
-
-
-\subsection{Choix de la fonction de coût}
-
-
-\subsection{Taille des batchs et nombre de passages}
-
-
-\subsection{Taux d'apprentissage}
-
->>>>>>> Stashed changes
 
 \end{document}
