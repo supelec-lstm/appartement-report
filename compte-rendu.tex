@@ -478,25 +478,42 @@ Le neurone a été défini comme une entité autonome, qui comporte des entrées
 
 \begin{figure}
 \begin{center}
-
-\caption{UML simplifié}
+\includegraphics[scale=0.5]{images/uml_simplifie_imp1.png}
+\caption{UML simplifié (à changer)}
 \label{UML simplifié}
 \end{center}
 \end{figure}
 
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.3]{images/uml_simplifie_maispastrop_imp1.png}
+\caption{UML simplifié maispastrop}
+\label{UML simplifié maispastrop}
+\end{center}
+\end{figure}
 
 On répartit les neurones en différentes catégories selon leurs fonctions d'activation (sigmoïde, tangente hyperbolique, Softmax ou ReLu par exemple).
+
 Ainsi la classe Neuron possède de nombreuses sous-classes correspondant à ces fonctions. En outre, il existe plusieurs sous-classes destinées aux neurones ayant un comportement particulier. On distingue ainsi BiasNeuron, qui permet d'ajouter un biais au niveau des entrées d'un autre neurone, InputNeuron correspondant simplement aux neurones d'entrées. L'ajout d'un neurone de coût (cost neuron) à la fin du réseau permet de calculer directement l'erreur lors de la propagation d'une entrée. Il faudra ainsi spécifier pour chaque input d'entrée la sortie attendue pour calculer le coût (avec un InputNeuron).
 
-Les liens entre neurones ne seront pas mémorisées par le réseau. Cette tâche sera réalisée par les neurones eux-mêmes. Ainsi, chacun possédera en attribut une liste de parents et une liste d'enfants, ce qui lui permettra de se situer dans le réseau. Ces deux listes sont indispensables afin de propager le résultat de sortie du neurone et afin de rétropropager le gradient lors de l'algorithme d'apprentissage.
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.2]{images/uml_neurone_imp1.png}
+\caption{Déclinaison de la classe neurone}
+\label{uml_neurone_imp1}
+\end{center}
+\end{figure}
 
+
+Les liens entre neurones ne seront pas mémorisées par le réseau. Cette tâche sera réalisée par les neurones eux-mêmes. Ainsi, chacun possédera en attribut une liste de parents et une liste d'enfants, ce qui lui permettra de se situer dans le réseau. Ces deux listes sont indispensables afin de propager le résultat de sortie du neurone et afin de rétropropager le gradient lors de l'algorithme d'apprentissage.
+	
 \section{Principe de fonctionnement}
 Pour utiliser le programme, il suffit de créer le réseau de neurones voulu. On crée pour cela différents neurones (InputNeuron, SigmoidNeuron, CrossEntropyNeuron, ...) en spécifiant les parents à chaque fois. Le programme mettra lui même à jour les listes de parents et d'enfants de chaque neurone afin de créer les différentes relations entre neurones. On crée finalement le réseau (Network) en spécifiant les entrées, sorties, le neurone de coût et les neurones intermédiaires.
 On peut alors appliquer deux fonctions principales sur le réseau. "Propagate" permet de calculer la sortie du réseau pour une entrée fournie en paramètre. "Batch\_propagation\_descent" permet d'appliquer l'algorithme de d'apprentissage basée sur la backpropagation du gradient pour un ensemble d'entrées, de sorties attendues et un learning rate $\eta$ donnés. 
 Pour réaliser cet algorithme d'apprentissage, le programme sélectionne une entrée x et une sortie attendue y\_expected. Il applique ensuite un "propagate" afin d'obtenir la sortie y et le coût correspondant. Un backpropagate permet alors de faire remonter le gradient jusqu'à chaque neurone où il sera accumulé dans une variable acc\_dJdw. On réitère ce processus pour tous les couples x et y\_expected. Enfin, on met à jour les poids grâce à un "descent\_gradient" à l'aide de l'équation \ref{mise_a_jour_poids_batch} (valable pour un batch) :
 
 \begin{equation}
-w(t+1) = w(t) - \frac{\eta}{batch\_size}acc_dJdw
+w(t+1) = w(t) - \frac{\eta}{batch\_size}acc\_dJdw
 \label{mise_a_jour_poids_batch}
 \end{equation}
 
@@ -511,19 +528,32 @@ Cela a permis d'étudier et d'assurer le bon fonctionnement de l'implémentation
 Des premiers tests ont été réalisés avec un réseau avec une couche cachée de deux neurones. Les résultats sont alors plutôt mauvais : alors que théoriquement le XOR est réalisable avec cette architecture, nous avons pu observer que lors de l'exécution de l'algorithme, la descente du gradient a tendance à se bloquer dans un minimum local de la fonction de coût. 
 
 \begin{figure}[!h]
-\centering
-\input{"images/"}
+\begin{center}
+\includegraphics[scale=0.6]{images/xor_cost_function.png}
 \caption{fonction de coût bloquée dans un minimum local}
 \label{xor_cout_bloque}
+\end{center}
 \end{figure}
 
-Nous avons alors pu remarquer que même en modifiant les différents paramètres, (valeurs initiales des poids, learning rate ou les fonctions d'activation), cela restait inefficace, et les résultats obtenus loin de ce que l'on recherchait.
+Nous avons alors pu remarquer que même en modifiant différents paramètres, (valeurs initiales des poids, learning rate ou les fonctions d'activation), cela restait inefficace, et les résultats obtenus ne correspondaient pas à la fonction xor que l'on attendait (voir figure \ref{xor_non_fonctionnel}).
 
--> figure des XOR pas bien séance du 29/09
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.6]{images/xor_non_fonctionnel.png}
+\caption{XOR bloqué dans un minimum local}
+\label{xor_non_fonctionnel}
+\end{center}
+\end{figure}
 
-Nous sommes alors passés sur une seconde architecture avec cette fois quatre neurones dans la couche intermédiaire cachée. On obtient cette fois de très bon résultats avec différentes fonctions d'activation (Relu et Tangente Hyperbolique notamment).
+Nous sommes alors passés sur une seconde architecture avec cette fois quatre neurones dans la couche intermédiaire cachée. On obtient cette fois de très bons résultats comme celui de la figure \ref{xor_relu_2_4}.
 
--> figures des XOR du 07/10 plus celles ok du 29/09 si retrouve ce que c'est
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.6]{images/xor_relu_2_4.png}
+\caption{2 couches cachées de 4 neurones-ReLu}
+\label{xor_relu_2_4}
+\end{center}
+\end{figure}
 
 On peut remarquer avec cette présentation des résultats que le réseau de neurones renvoie les bonnes réponses du XOR pour les entrées définies pour l'entrainement. Pour toutes les autres valeurs,  le réseau "interprète" alors avec son apprentissage. On peut remarquer que cette interprétation varie selon la fonction d'activation. Ainsi pour la tangente hyperbolique les zones définies sont beaucoup plus courbées que pour la ReLu. On peut lier cela avec les représentations graphiques de ces fonctions. En effet la Relu est en fait deux demi-droites alors que la tangente hyperbolique a une courbe représentative beaucoup plus "arrondie".
 
@@ -531,9 +561,15 @@ L'apprentissage s'est donc bien réalisé pour le XOR, les résultats obtenus so
 
 MNIST est une base de données de chiffres écrits à la main réalisée par Yann Lecun. Cette base de donnée est constituée d'un ensemble de données d'apprentissage de 60.000 exemples et un ensemble de test constitué de 10.000 exemple. L'intersection de ces deux ensembles est nulle. Chaque exemple est donc une image d'une taille fixe d'un chiffre écrit à la main, centré. Le but est donc que notre algorithme puisse reconnaître les chiffres écrits.
 
-Nous avons réalisés un premier apprentissage des données MNIST sur un réseau sans couche cachée totalement connecté (fully connected). Ce réseau dispose d'une entrée par pixel des images en entrée et de dix sorties, une par chiffre. Un premier apprentissage est réalisé sur le réseau avec un calcul du gradient moyenné sur des batchs de 128 exemples. On calcule alors la précision du réseau de neurones sur l'ensemble complet d'apprentissage ainsi que sur l'ensemble de test tous les 2.000 exemples.
+Nous avons réalisé un premier apprentissage des données MNIST sur un réseau sans couche cachée totalement connecté (fully connected). Ce réseau dispose d'une entrée par pixel des images et de dix sorties, une par chiffre. Un premier apprentissage est réalisé sur le réseau avec un calcul du gradient moyenné sur des batchs de 128 exemples. On calcule alors la précision du réseau de neurones sur l'ensemble complet d'apprentissage ainsi que sur l'ensemble de test tous les 2.000 exemples.
 
--> Courbe d'apprentissage du MNIST du 7/10
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.5]{images/mnist_apprentissage_128.png}
+\caption{Précision en fonction du nombre d'exemples appris}
+\label{mnist_apprentissage_128}
+\end{center}
+\end{figure}
 
 On peut remarquer sur ces premiers résultats, que la précision progresse très vite avant de plafonner autour des 90\% dès les 10.000 exemples utilisés. Nous avons obtenu une précision maximale de 90.83\% sur cette architecture neuronale, très simpliste. Une précision plus importante pourrait être obtenue en ajoutant au moins une couche cachée au réseau. Cependant, le temps d'exécution avec cette première architecture (21.565 secondes soit plus de 6 heures), nous a montré que cela serait impossible avec de réaliser un apprentissage en un temps raisonnable avec des architectures plus compliquées.
 \label{resultat_premiere_implementation}
@@ -608,6 +644,33 @@ C'est donc ainsi que nous avons pu déterminer des éléments permettant de comp
 
 Dans un premier temps, nous avons effectués plusieurs tests sur un exemple très simple : XOR.
 Quelques résultats ont déjà été présentés en partie \ref{resultat_premiere_implementation}. Ils vont être rapelés et détaillés dans cette partie.
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.6]{images/xor_architecture_tanh.png}
+\caption{Convergence en fonction de l'architecture avec tanh}
+\label{xor_architecture_tanh}
+\end{center}
+\end{figure}
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.6]{images/xor_architecture_relu.png}
+\caption{Convergence en fonction de l'architecture avec relu}
+\label{xor_architecture_relu}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\begin{tabular}{cc}
+\includegraphics[scale=0.25]{images/xor_tanh_centre.png} & \includegraphics[scale=0.25]{images/xor_relu_centre.png} \\
+\includegraphics[scale=0.25]{images/cout_xor_tanh_centre.png} & \includegraphics[scale=0.25]{images/cout_xor_relu_centre.png}
+\end{tabular}
+\caption{Résultat après centrage des entrées pour tanh (à gauche) et pour relu (à droite)} 
+\label{fonctions_activation}
+\end{center}
+\end{figure}
 
 
 \section{\'Etude de MNIST}
