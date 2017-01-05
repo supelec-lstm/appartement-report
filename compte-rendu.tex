@@ -684,6 +684,29 @@ Le nombre de couches cachées d'un réseau de neurone ainsi que leur composition
 \subsection{Initialisation des poids}
 Avant le lancement de l'algorithme sur un réseau de neurone, il est nécessaire d'initialiser les poids.	L'usage le plus courant est de les initialiser aléatoirement. Cependant, le choix de la distribution aléatoire n'est pas forcément évident. En effet, on peut choisir d'utiliser une distribution uniforme, une distribution gaussienne ou tout autre type de distribution aléatoire avec des paramètres variables.
 
+Nous avons donc testé trois types de fonction d'initialisation des poids : une répartition uniforme, une répartition uniforme centrée en 0  et une répartition gaussienne centrée en 0.
+Si les initialisations centrées en 0 permettent une convergence un petit peu plus rapide, ces trois initialisations produisent des résultats similaires. Cependant, l'amplitude des poids change beaucoup les résultats quelle que soit la fonction d'initialisation. En effet, les poids convergeant lors de l'apprentissage vers de petites valeurs, une initialisation avec de petites amplitudes va permettre une convergence plus rapide.
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.2]{images/initialisationpoids_amplitude01.png}
+\caption{Précision sur les ensembles de test (en noir) et d'apprentissage (en rouge) en fonction du nombre d'exemples utilisés pour l'apprentissage pour une initialisation des poids d'amplitude 0.1 }
+\label{initialisationpoids_amplitude0.1}
+\end{center}
+\end{figure}
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.2]{images/initialisationpoids_amplitude10.png}
+\caption{Précision sur les ensembles de test (en noir) et d'apprentissage (en rouge) en fonction du nombre d'exemples utilisés pour l'apprentissage pour une initialisation des poids d'amplitude 0.1}
+\label{initialisationpoids_amplitude10}
+\end{center}
+\end{figure}
+
+C'est ce que l'on peut voir sur les deux figures \ref{initialisationpoids_amplitude0.1} et \ref{initialisationpoids_amplitude10}. Dans les deux cas, les poids sont initialisés selon une loi normale centrée de variance 0,1. Cependant, sur la première, un coefficient multiplicatif de 0,1 leur est affecté alors que celui-ci est de 10 sur la deuxième.
+On peut ainsi bien observer que dans le cas du facteur multiplicatif de 10, la convergence est plus lente au début de l'apprentissage, même si l'on atteint sensiblement les mêmes valeurs finales de précision.
+
+
 
 \subsection{Choix des fonctions d'activations}
 
