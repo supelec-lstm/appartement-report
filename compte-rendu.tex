@@ -114,7 +114,7 @@ Les principales fonctions d'activation sont :
 \item $ReLU : x \mapsto max(0, x)$ dite ReLU (rectified linear unit).
 \end{itemize}
 
-La figure \label{fonctions_activation} montre les graphes de ces différentes fonctions et permet de visualiser les différences entre celles-ci.
+La figure \ref{fonctions_activation} montre les graphes de ces différentes fonctions et permet de visualiser les différences entre celles-ci.
 
 \begin{figure}
 \begin{center}
@@ -161,7 +161,7 @@ Finalement, si la fonction d'activation est la fonction identité, le neurone se
 
 Le point commun entre tous les neurones est qu'ils sont seulement capable de modéliser des interactions linéaires entre les entrées. Cependant, à partir d'un ensemble de données, il est possible d'utiliser des neurones pour modéliser des interactions non linéaires entre les différentes composantes des entrées. Pour cela, il faut transformer les entrées afin de créer de nouvelles composantes. Par exemple, prenons un ensemble de données tel que les points ont le label $1$ s'ils sont dans le disque de rayon 0.5 et de centre $(0;0)$ et $0$ sinon. Un exemple d'un tel ensemble de donnée est visible sur la figure \ref{disque}. En l'état, cet ensemble n'est pas linéairement séparable et donc un neurone simple ne peut pas le classifier correctement. Cependant si la transformation $x \mapsto (x_1^2, x_2^2)$ est appliquée aux exemples. Les points sont maintenant linéairement séparables dans ce nouvel ensemble. Il est alors possible d'utiliser un neurone afin de classifier correctement l'ensemble. Ces résultats sont présents sur la figure \ref{disque}.
 
-Figure manquante !
+\textbf{Figure manquante !}
 
 En conclusion, un neurone est une fonction relativement simple permettant de modéliser des interactions linéaires entre ses entrées. Dans la partie suivante, nous verrons comment associer ces neurones afin de créer des modèles plus complexes.
 
@@ -458,7 +458,7 @@ Finalement, en utilisant les formules \ref{dEdw}, \ref{formule_retropropagation}
 \EndProcedure
 \end{algorithmic} 
 \caption{Algorithme de rétropropagation du gradient dans un réseau de neurone feedforward.}
-\label{propagation_memoisation}
+\label{propagation_memoisation2}
 \end{algorithm}
 
 Cet algorithme utilise la mémoïsation afin de ne pas calculer plusieurs fois les dérivées pour un neurone. On peut remarquer que cet algorithme est très similaire à celui de la propagation. Pour des raisons similaires, le coût temporel de la rétropropagation est aussi en $O(|V|+|A|)$.
@@ -664,11 +664,11 @@ Quelques résultats ont déjà été présentés en partie \ref{resultat_premier
 \begin{figure}
 \begin{center}
 \begin{tabular}{cc}
-\includegraphics[scale=0.25]{images/xor_tanh_centre.png} & \includegraphics[scale=0.25]{images/xor_relu_centre.png} \\
-\includegraphics[scale=0.25]{images/cout_xor_tanh_centre.png} & \includegraphics[scale=0.25]{images/cout_xor_relu_centre.png}
+\includegraphics[scale=0.5]{images/xor_tanh_centre.png} & \includegraphics[scale=0.5]{images/xor_relu_centre.png} \\
+\includegraphics[scale=0.5]{images/cout_xor_tanh_centre.png} & \includegraphics[scale=0.5]{images/cout_xor_relu_centre.png}
 \end{tabular}
 \caption{Résultat après centrage des entrées pour tanh (à gauche) et pour relu (à droite)} 
-\label{fonctions_activation}
+\label{differentes_fonctions_activation}
 \end{center}
 \end{figure}
 
@@ -730,10 +730,14 @@ Nous avons aussi étudié l'influence du taux d'apprentissage ou learning rate. 
 
 L'architecture du réseau a été choisie sans couche cachée avec 10 neurones de sortie sous forme de Softmax. Le neurone de coût est un SoftmaxCrossEntropy, et l'apprentissage se fait avec des lots de 128 exemples. Nous avons alors étudié l'apprentissage du réseau pour des taux d'apprentissage allant de 0.01 à 100.
 Nous pouvons alors distinguer trois cas reflétant les principaux comportements :
-	-Pour un taux d'apprentissage de 0.01, la convergence est très lente mais sans oscillations. Si la précision obtenue peut-être à hauteur des autres taux d'apprentissage en utilisant plus d'exemples, on peut considérer celui-ci trop petit.
-	-Pour un taux d'apprentissage de 100, la convergence est très rapide au début, mais oscille beaucoup et va finalement bloquer l'apprentissage vers un autre minimum local de coût non désiré. On peut donc considérer ce taux d'apprentissage comme trop grand.
-	-Pour un taux d'apprentissage de 0.1, il semble apparaître un bon compromis entre stabilité et vitesse de la convergence. C'est cette valeur qui en général sera choisie pour les tests, bien que d'autres soient satisfaisants (0.8 ou 1 par exemple).
 
+\begin{itemize}
+
+\item Pour un taux d'apprentissage de 0.01, la convergence est très lente mais sans oscillations. Si la précision obtenue peut-être à hauteur des autres taux d'apprentissage en utilisant plus d'exemples, on peut considérer celui-ci trop petit.
+\item Pour un taux d'apprentissage de 100, la convergence est très rapide au début, mais oscille beaucoup et va finalement bloquer l'apprentissage vers un autre minimum local de coût non désiré. On peut donc considérer ce taux d'apprentissage comme trop grand.
+\item Pour un taux d'apprentissage de 0.1, il semble apparaître un bon compromis entre stabilité et vitesse de la convergence. C'est cette valeur qui en général sera choisie pour les tests, bien que d'autres soient satisfaisants (0.8 ou 1 par exemple).
+
+\end{itemize}
 
 \chapter{Réseaux de neurones récurrents}
 \section{Motivation}
