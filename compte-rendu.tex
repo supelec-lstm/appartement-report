@@ -718,6 +718,21 @@ On peut ainsi bien observer que dans le cas du facteur multiplicatif de 10, la c
 
 
 \subsection{Taux d'apprentissage}
+Nous avons aussi étudié l'influence du taux d'apprentissage ou learning rate. En effet celui-ci influe sur la mise à jour des poids : plus il est grand et plus chaque l'importance donnée au calcul de la dérivée est important. Avoir un taux d'apprentissage grand permet d’obtenir rapidement des performances satisfaisantes en termes de précision. Au contraire, des phénomènes d'oscillations sont observés pour un apprentissage conséquent, et cela fournit en retour de moins bons résultats, par rapport à des taux d'apprentissage plus faibles. Cela a été illustré sur la figure \ref{influence_learningrate}.
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.2]{images/influence_learningrate.png}
+\caption{Influence du learning rate sur la précision sur l'ensemble de test en fonction du nombre d'exemple utilisés}
+\label{influence_learningrate}
+\end{center}
+\end{figure}
+
+L'architecture du réseau a été choisie sans couche cachée avec 10 neurones de sortie sous forme de Softmax. Le neurone de coût est un SoftmaxCrossEntropy, et l'apprentissage se fait avec des lots de 128 exemples. Nous avons alors étudié l'apprentissage du réseau pour des taux d'apprentissage allant de 0.01 à 100.
+Nous pouvons alors distinguer trois cas reflétant les principaux comportements :
+	-Pour un taux d'apprentissage de 0.01, la convergence est très lente mais sans oscillations. Si la précision obtenue peut-être à hauteur des autres taux d'apprentissage en utilisant plus d'exemples, on peut considérer celui-ci trop petit.
+	-Pour un taux d'apprentissage de 100, la convergence est très rapide au début, mais oscille beaucoup et va finalement bloquer l'apprentissage vers un autre minimum local de coût non désiré. On peut donc considérer ce taux d'apprentissage comme trop grand.
+	-Pour un taux d'apprentissage de 0.1, il semble apparaître un bon compromis entre stabilité et vitesse de la convergence. C'est cette valeur qui en général sera choisie pour les tests, bien que d'autres soient satisfaisants (0.8 ou 1 par exemple).
 
 
 \chapter{Réseaux de neurones récurrents}
