@@ -27,7 +27,7 @@
 
 Avant de parler de neurones et de réseaux de neurones, nous commencerons par rappeler rapidement ce qu'est l'apprentissage automatique, ses différentes formes et fixerons certaines notations pour la suite de ce document.
 
-L'apprentissage automatique au sens général peut-être défini comme un processus permettant à une machine d'évoluer afin de résoudre une tâche ou un problème. Il en existe plusieurs formes parmi lesquelles l'apprentissage supervisé, l'apprentissage non-supervisé et l'apprentissage par renforcement.
+L'apprentissage automatique au sens général peut être défini comme un processus permettant à une machine d'évoluer afin de résoudre une tâche ou un problème. Il en existe plusieurs formes parmi lesquelles l'apprentissage supervisé, l'apprentissage non-supervisé et l'apprentissage par renforcement.
 
 L'apprentissage supervisé est celui qui nous intéressera le plus, il sera donc davantage détaillé. Dans un problème d'apprentissage il est donné un ensemble de taille finie $N$ de couples d'entrée, sortie que nous noterons $(x^{(1)},y^{(1)}), ..., (x^{(N)}, y^{(N)})$. Ces couples sont appelés exemples. Les entrées proviennent d'un espace $\mathcal{X}$ de dimension $n$ et les sorties d'un espace $\mathcal{Y}$ de dimension $m$. Une hypothèse classique de l'apprentissage automatique est de supposer que les entrées sont générées de manière indépendante selon une certaine loi de probabilité sur $\mathcal{X}$. Plus formellement, les $(x^{(i)})_{i \in \{1, ..., N\}}$ sont les réalisations de variables aléatoires $(X_i)_{i \in \{1, ..., N\}}$ avec les $X_i$ indépendantes et identiquement distribuées selon une probabilité $p$. Pour plus de commodités, notons $X = \{x^{(i)}, \forall i \in \{1, ..., N\}\}$ et $Y = \{y^{(i)}, \forall i \in \{1, ..., N\}\}$.
 
@@ -147,7 +147,7 @@ La figure \ref{hyperplan} illustre cette séparation. Ce cas particulier de neur
 \end{center}
 \end{figure}
 
-Si la fonction d'activation est une sigmoïde, la sortie du neurone peut-être interprétée comme la probabilité $p(y=1|x)$. Par conséquent, le neurone classifie un exemple dans la classe 1 si la sortie est supérieure à $0.5$ et dans la classe 0 sinon. On parle ici de régression logistique. L'espace est toujours séparée en deux parties par un hyperplan, $H = \{x, f(x)=0.5\}$. Cependant maintenant les valeurs associées aux entrées sont continues entre $0$ et $1$. La figure \ref{regression_logistique} permet de visualiser cette différence. Dans la suite de ce document, des graphes de ce type seront utilisés à plusieurs reprises afin de pouvoir visualiser l'action d'un réseau de neurones.
+Si la fonction d'activation est une sigmoïde, la sortie du neurone peut être interprétée comme la probabilité $p(y=1|x)$. Par conséquent, le neurone classifie un exemple dans la classe 1 si la sortie est supérieure à $0.5$ et dans la classe 0 sinon. On parle ici de régression logistique. L'espace est toujours séparée en deux parties par un hyperplan, $H = \{x, f(x)=0.5\}$. Cependant maintenant les valeurs associées aux entrées sont continues entre $0$ et $1$. La figure \ref{regression_logistique} permet de visualiser cette différence. Dans la suite de ce document, des graphes de ce type seront utilisés à plusieurs reprises afin de pouvoir visualiser l'action d'un réseau de neurones.
 
 \begin{figure}
 \begin{center}
@@ -286,7 +286,7 @@ NLL(y^{(1)}, ..., y^{(N)}, x^{(1)}, ..., x^{(N)}; \theta) = \sum_{i=1}^{N}{(y^{(
 
 où $C$ est une constante.
 
-Dans le problème de minimisation, la constante peut-être négligée et il est possible de multiplier par une constante positive sans changer le problème. On déduit que sous cette modélisation, la fonction de coût obtenue par le principe de maximum de vraisemblance est :
+Dans le problème de minimisation, la constante peut être négligée et il est possible de multiplier par une constante positive sans changer le problème. On déduit que sous cette modélisation, la fonction de coût obtenue par le principe de maximum de vraisemblance est :
 
 \begin{equation}
 E = \frac{1}{N}\sum_{i=1}^{N}{(y^{(i)} - \hat{y}(x^{(i)}))^2} = \frac{1}{N}\sum_{i=1}^{N}{e(y^{(i)}, \hat{y}(x^{(i)}))}
@@ -782,5 +782,48 @@ Enfin, nous appliquerons ces deux algorithmes à l'apprentissage de textes de Sh
 \subsection{Principe de fonctionnement}
 \subsection{Résultats}
 \section{Comparaison des deux algorithmes}
+
+\chapter{Long Short-Term Memory (LSTM)}
+\section{Motivation}
+Les réseaux de neurones récurrents étudiés jusqu'alors permettent effectivement d'apprendre des suites de séquences. Néanmoins, on observe un phénomène d'oubli se caractérisant par une faible influence des plus vieilles informations sur la sortie actuelle.
+
+Cela est dû à la rétropropagation du gradient. En effet, celle-ci est basée sur la règle de la chaîne qui fait donc apparaître un produit de dérivées de fonctions d'activation. Or si ces dérivées sont supérieures à 1, cette partie du gradient rétropropagé risque d'exploser. A l'inverse, si elles sont inférieures à 1, comme c'est le cas pour la sigmoide dont la dérivée a une valeur maximale de 0
+25, cette partie du gradient tend à disparaître lorsque l'on remonte loin dans le temps. Ainsi, on perd la dépendance à long terme.
+
+Nous travaillions jusque là avec des réseaux récurrents comme celui présenté sur la figure suivante composé d'une simple couche de tangentes hyperboliques.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{images/RNN_classique.png}
+\caption{Dépliage d'un RNN classique}
+\label{RNN classique}
+\end{center}
+\end{figure}
+
+Dans le cadre des LSTM, nous utilisons une nouvelle cellule de base afin d'éviter cette disparition du gradient lors de la rétropropagation.
+
+\section{Principe de fonctionnement}
+Comme pour les réseaux récurrents, on peut déplier les LSTM afin de se ramener à une cellule de base qui se répète. Le principe des LSTM repose sur l'existence d'un état qui apparaît tout en haut de la cellule et qui subit seulement quelques modifications linéaires. Cela permettra ainsi, lors de la rétropropagation du gradient, de ne pas perdre la dépendance avec les informations lointaines.
+
+La cellule de base des LSTM peut donc être représentée par la figure suivante.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{images/cellule_LSTM_article.png}
+\caption{Cellule élémentaire des LSTM}
+\label{cellule LSTM}
+\end{center}
+\end{figure}
+
+% préciser légende du diagramme
+% préciser différentes parties de la cellule
+% diagramme avec cellules à la suite
+% expliquer les différentes parties de la cellule
+
+% explication + formules rétropropagation 
+
+\section{Implémentation}
+\section{Résultats}
+\section{Autres applications}
 
 \end{document}
