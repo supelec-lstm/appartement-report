@@ -456,7 +456,7 @@ On peut remarquer que le terme $\frac{\partial s_j}{\partial w_j}$ est égal à 
 \label{dEdw}
 \end{equation}
 
-Afin de calculer $\frac{\partial E}{\partial y_j}$, utilisons le fait que la sortie du neurone $j$ est une des entrées de ses enfants. En notant $x_{i, j}$ la coordonnée correspondant à la sortie du neurone $j$ dans l'entrée du neurone $i$, on a :
+Afin de calculer $\frac{\partial E}{\partial y_j}$, utilisons le fait que la sortie du neurone $j$ est une des entrées de ses enfants. En notant $x_{i, j}$ l'entrée du neurone i correspondant à la sortie du neurone $j$, on a :
 
 \begin{equation}
 \frac{\partial E}{\partial y_j} = \sum_{i \in Ch(j)}{\frac{\partial E}{\partial x_{i,j}}}

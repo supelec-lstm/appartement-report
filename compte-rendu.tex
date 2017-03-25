@@ -155,76 +155,7 @@ On peut remarquer sur ces premiers résultats, que la précision progresse très
 Cette première implémentation intuitive permet ainsi d'obtenir des résultats très satisfaisants, allant jusqu'à 90\% de réussite sur MNIST. De plus, elle met en évidence le fonctionnement d'un réseau de neurones. Cependant, on remarque que les calculs ne sont pas du tout optimisés. Cela explique que le temps d'exécution devient rapidement très long. Dans l'exemple de l'application à l'ensemble de données MNIST, entraîner plusieurs fois le réseau sur l'ensemble d'apprentissage permettrait d'obtenir de bien meilleurs résultats, mais cela prendrait alors beaucoup trop de temps pour être véritablement envisageable.
 Afin d'améliorer le temps de calcul et d'optimiser l'algorithme, nous nous sommes intéressés à une nouvelle approche des réseaux neuronaux basée sur les Computational Graphs, ou Graphes de calculs.
 
-\chapter{Graphe de calculs}
-
-\section{Définition}
-
-Nous avons vu précédemment que l'architecture du réseau de neurones peut être lourde autant du point de vue modélisation que du point de vue calcul. Pour motiver l'apparition des graphes de calcul prenons l'exemple d'un réseau de neurones à $m$ entrées possèdant une seule couche de $n$ neurones ayant pour fonction d'activation une sigmoïde $\sigma$.
-
-Nous pourrions modéliser ce réseau de neurone en définissant $n$ neurones ayant chacun son vecteur poids mais une façon équivalente de modéliser ce système est de rassembler tous les poids dans une matrice $W \in \mathbb{R}^{m \times n}$. En notant $x \in \mathbb{R}^m$ le vecteur ligne des entrées du réseau, on a alors que la sortie est :
-$$y = \sigma(xW)$$
-où la fonction $\sigma$ s'applique terme à terme. 
-
-Cette manière de modéliser a plusieurs avantages. Tout d'abord, elle est plus compacte et simple à manipuler. Puis, elle a un avantage certain pour notre implémentation en Python car elle permet d'utiliser pleinement la librairie d'algèbre linéaire \texttt{numpy} ce qui accélerera grandement les calculs. Enfin, il est facile d'étendre la formule précédente au calcul de la sortie de plusieurs vecteurs d'entrées. En effet si $X \in \mathbb{R}^{l \times m}$ est une matrice contenant $l$ vecteurs d'entrées alors la sortie du réseau s'écrit :
-$$Y = \sigma(XW)$$
-
-On aurait donc envie de s'affranchir de la structure du neurone pour seulement modéliser les opérations mathématiques effectuées par le réseau.
-
-Un graphe de calcul est simplement un graphe représentant une formule mathématique. Un n\oe{}ud de ce graphe représente soit une constante, une variable, des poids ou une opération mathématique.
-
-Par exemple, le graphe de calcul représente le réseau présenté ci-dessus est :
-
-% Insérer le graphe du réseau
-
-Finalement, nous ne sommes même pas obligés de rester cantonnés à des graphes de calculs représentant des réseaux de neurones,  nous pouvons modéliser un beaucoup plus grand ensemble de fonctions mathématiques grace à ce formalisme.
-
-\section{Dérivation automatique}
-
-Nous avons modéliser nos réseaux de manière plus efficace. Il reste cependant un problème à résoudre. Nous avons besoin de calculer la dérivée du coût $E$ par rapport aux poids avant de pouvoir utiliser l'algorithme de la descente du gradient.
-
-Afin de réaliser cela, nos n\oe{}uds représentant des opérations mathématiques ne seront pas seulement responsable de calculer une sortie mais aussi de propager une erreur.
-
-\section{N\oe{}uds}
-
-
-\section{Legacy}
-
-Un graphe de calcul est la représentation de fonctions composées comme un réseau d’entités interconnectés. Chacune de ces entités est une fonction ou une opération, cela permet alors une meilleure visualisation de la tâche globale effectuée par le réseau ainsi que les relations entre deux neurones successifs. On appellera par la suite nœud parent un nœud situé en amont du réseau (i.e. plus proche des inputs) par rapport à un autre (appelé alors nœud enfant) et en lien direct avec lui. 
-
-L’intérêt principal de cette représentation est la rapidité et la facilité de l’implémentation de l’algorithme de backpropagation. En effet, le caractère modulaire de cette dernière rend aisé le calcul de gradient en appliquant la règle de la chaîne, comme le montre l’exemple suivant :
-
-\begin{figure}[!h]
-\begin{center}
-\includegraphics[scale=0.25]{images/retropropagation_graphe.png}
-\caption{Décomposotion de la rétropropagation de l'erreur dans un graphe de calcul simple.}
-\label{retropropagation_graphe}
-\end{center}
-\end{figure}
-
-Supposons que l’on veuille sur cet exemple simple obtenir la dérivée de g par rapport à x, il suffira alors de faire le produit des dérivées indiquées sur chaque branche connectant deux nœuds différents.
-
-\section{Diagramme UML}
-
-Là encore, l'architecture retenue contient 2 classes mères : Node et Graph, un graph étant constitué de plusieurs nodes qui connaissent chacune leurs parents et leurs enfants.
-
-La différence principale avec l'architecture précédente est dans la modularité de la classe Node. Bien qu'elle joue un rôle similaire à celui de la classe Neuron dans le modèle Neuron/Network, elle est bien plus souple : une node peut représenter une entrée du graph, un vecteur de poids, une opération élémentaire (addition, soustraction, produit scalaire), ou une fonction (fonction d'activation d'un neurone ou fonction de coût du réseau). Une node prend pour entrée une matrice (ou 2 dans le cas des opérateurs élémentaires), et donne en sortie ses résultats sous la forme d'une matrice de taille adaptée. De même elle peut calculer le gradient par rapport à ses entrées étant donné celui de ses enfants toujours sous forme matricielle.  Cette capacité des nodes à gérer les matrices est primordiale car elle permet de créer un réseau ne possédant qu'une seule node d'entrée et de propager à travers lui tout un lot d'exemples en une seule fois, diminuant ainsi grandement le nombre d'appels objet en les remplaçant par des opérations matricielles. Les résultats obtenus avec cette architecture permettront par la suite de confirmer que les appels objets et non les opérations occupaient la majeure partie du temps de calcul dans l'implémentation présentée en chapitre 1.
-
-\begin{figure}[!h]
-\centering
-
-\tikzset{every picture/.style={scale=0.6}}
-\input{"images/graphe_de_calcul.tex"}
-\caption{Schéma d'un graphe de calcul pour un neurone simple}
-\label{graphe_de_calcul}
-\end{figure}
-
-Un graph commence par une node d'entrée, suivie d'un ensemble de nodes de calcul dont la dernière est qualifiée de node de sortie. Une ou plusieurs node(s) de fonction de coût prennent pour parent la node de sortie, une node d'entrée qu'on actualisera aux valeurs des sorties attendues lors de l'entrainement et une node de régularisation. Enfin on clôt le graph par une node qui possède un gradient unitaire constant et aucune sortie. Elle permettra d'initier la descente du gradient dans la pile des appels récursifs des nodes depuis les entrées vers la fin du graph. C'est le graph qui gère la propagation des exemples et la descente du gradient à travers les nodes mais son rôle est très limité de par la grande autonomie qui est donnée à celles-ci. Les fonctions de propagation et rétropropagation de chaque node sont en effet codée de sorte à ce qu'un unique appel de leur fonction de propagation (respectivement rétropropagation) sur la node d'entrée (respectivement de sortie) donne lieu à une cascade d'appel jusqu'à l'obtention du résultat voulu. Dans une propagation par exemple, on appelle la méthode « propager » sur la dernière node du réseau qui l’appellera elle-même sur ses parents pour calculer sa sortie, ce qui actualisera les sorties de toutes les nodes nécessaires au calcul du résultat initialement demandé.
-
-
-
-\section{Résultats}
-
-L'architecture en Graphe de Calcul donne de très bons résultats du point de vue de la rapidité de calcul. On observe par exemple une réduction d'un facteur 1000 du temps de calcul pour l'entrainement du réseau simple sur l'ensemble MNIST par rapport à l'implémentation "naïve" du chapitre 1. Ces performances sont atteintes grâce à la diminution du nombre d'appels objets, remplacés par des calculs matriciels sur des matrices de grande taille gérées par des bibliothèques efficaces.
+\include{chapitre3}
 
 \chapter{Études des paramètres}
 
