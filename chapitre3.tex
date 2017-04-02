@@ -38,14 +38,14 @@ Dans le graphe de calculs de la figure \ref{reseau_3_5_3}, le n\oe{}ud $x$ est u
 
 Les graphes de calculs offrent une très grande liberté. Il est possible de représenter avec ceux-ci une classe de fonctions bien plus grandes qu'avec des réseaux de neurones classiques.
 
-Écrivons dès maintenant, l'algorithme de propagation :
+Écrivons dès maintenant, l'algorithme de propagation. Afin de pouvoir être concis, nous devons ajouter des notations. Nous noterons l'arc allant de la sortie $k$ du n\oe{}ud $n_i$ vers l'entrée $l$ du n\oe{}ud $n_j$ comme un quadruplet $(n_i, k, n_j, l)$. De plus, nous noterons $in(n)$ le nombre d'entrées du n\oe{}ud $n$ et $out(n)$ le nombres de sorties du n\oe{}ud $n$.
 
 \begin{algorithm} 
 \begin{algorithmic}
 \Procedure{$evaluer\_graphe$}{$\mathcal{G}(V, A, V_{var}, (V_{op}, f), (V_{poids}, \theta)), x$}
-\Function{$evaluer\_noeud$}{$j$}
+\Function{$evaluer\_noeud$}{$n_j$}
 	\If{$déjàCalculé[j]$ est $faux$}
-		\State $t \leftarrow (evaluer\_noeud(i), i \in Pa(j))$
+		\State $t \leftarrow (evaluer\_noeud(i)_k, (n_i, k, l)\text{ tel que }(n_i, k, n_j, l) \in A)$
 		\State $y_j \leftarrow f_j(t)$
 		\State $déjàCalculé[j] \leftarrow vrai$
 	\EndIf
@@ -53,12 +53,12 @@ Les graphes de calculs offrent une très grande liberté. Il est possible de rep
 \EndFunction
 
 \State Initialiser un tableau $dejaCalculé$ de longueur $|V|$ à $faux$.
-\For{$i \in V_{var}$}
+\For{$n_i \in V_{var}$}
 	\State $y_i \leftarrow x_i$
 	\State $déjàCalculé[i] \leftarrow vrai$ 
 \EndFor
-\For{$j \in V$}
-	\State $evaluer\_noeud(j)$ 
+\For{$n_j \in V$}
+	\State $evaluer\_noeud(n_j)$ 
 \EndFor
 \EndProcedure
 \end{algorithmic}
@@ -74,7 +74,7 @@ Nous avons ainsi modéliser nos réseaux de manière plus efficace. Il reste cep
 
 Afin de réaliser cela, nos n\oe{}uds représentant des opérations mathématiques ne seront pas seulement responsable de calculer une sortie mais aussi de propager le gradient. En effet prenons un n\oe{}ud représent une opération mathématique $f$ à $m$ entrées $x_1, ..., x_m$ et à $n$ sorties $y_1, ..., y_m$. La règle de la chaine, nous permet d'exprimer la dérivée du coût par rapport aux entrées en fonction du coût par rapport aux sorties du n\oe{}ud. En effet, on a :
 \begin{equation}
-\forall i \in \{1, ...,  m\}, \frac{\partial E}{\partial x_i} = \sum_{j=1}^{n}{\frac{\partial y_j}{\partial x_i}\frac{\partial E}{\partial y_j}}
+\forall i \in \{1, ...,  m\}, \frac{\partial E}{\partial x_i} = \sum_{j=1}^{n}{\frac{\partial y_j}{\partial x_i}\frac{\partial E}{\partial y_j}} = \sum_{j=1}^{n}{\frac{\partial f_j}{\partial x_i}(x)\frac{\partial E}{\partial y_j}}
 \label{retropropagation_graphe}
 \end{equation}
 
@@ -85,11 +85,14 @@ La formule \ref{retropropagation_graphe} nous permet de décrire un algorithme d
 \begin{algorithm} 
 \begin{algorithmic}
 \Procedure{$retropropager\_gradient$}{$\mathcal{G}(V, A, V_{var}, (V_{op}, f), (V_{poids}, \theta)), x, y$}
-\Function{$calculer\_gradient$}{$j$}
+\Function{$calculer\_gradient$}{$n_i$}
 	\If{$déjàCalculé_j$ est $faux$}
-		\State $\frac{\partial E}{\partial y_j} \leftarrow \sum_{i \in Ch(j)}{calculer\_gradient(i)_j}$
-		\State $\frac{\partial E}{\partial x_j} \leftarrow \frac{\partial E}{\partial y_j} g_j'(s_j) w_j$
-		\State $\frac{\partial E}{\partial w_j} \leftarrow \frac{\partial E}{\partial y_j} g_j'(s_j) x_j$
+		\For{k dans $\{1, ..., out(n_i)\}$}
+			\State $\frac{\partial E}{\partial y_{i, k}} \leftarrow \sum_{(n_j, l)\text{ tel que }(n_i, k, n_j, l)}{calculer\_gradient(n_j)_l}$
+		\EndFor
+		\For{l dans $\{1, ..., out(n_i)\}$}
+			\State $\frac{\partial E}{\partial x_{i, l}} \leftarrow \sum_{k \in \{1, ..., out(n_i) \}}{\frac{\partial f_{i, k}}{\partial x_{i, l}}(x)\frac{\partial E}{\partial y_{i, k}}}$
+		\EndFor
 		\State $déjàCalculé_j \leftarrow vrai$
 	\EndIf
 	\State \Return $\frac{\partial E}{\partial x_j}$
@@ -97,12 +100,12 @@ La formule \ref{retropropagation_graphe} nous permet de décrire un algorithme d
 
 \State Appeler $evaluer\_graphe(\mathcal{N}(V, A, V_{in}, V_{out}, f), x)$ et récupérer les entrées et sorties de chaque noeud
 \State Initialiser un tableau $dejaCalculé$ de longueur $|V|$ à $faux$.
-\For{$i \in V_{out}$}
+\For{$n_i \in V_{out}$}
 	\State Calculer $\frac{\partial E}{\partial y_i}$
 	\State $déjàCalculé_i \leftarrow vrai$ 
 \EndFor
-\For{$i \in V$}
-	\State $calculer\_gradient(i)$ 
+\For{$n_i \in V$}
+	\State $calculer\_gradient(n_i)$ 
 \EndFor
 \EndProcedure
 \end{algorithmic} 
@@ -112,12 +115,18 @@ La formule \ref{retropropagation_graphe} nous permet de décrire un algorithme d
 
 \section{N\oe{}uds}
 
+Maintenant que les graphes de calculs ont été présentés de manière théorique, nous allons dans la suite présenter de manière plus pratique comment nous les avons implémentés.
+
+\subsection{La classe Node}
+
+Un n\oe{}ud aura deux missions : calculer sa sortie et rétropropager le gradient. Nous représentions ces deux opérations sur la figure \ref{node}.
+
+Lors de la propagation, un n\oe{}ud demande ses entrées à ses parents puis calcule sa sortie et la mémoïse. De façon analogue, lors de la rétropropagation, un n\oe{}ud demande à chacun de ses enfants le gradient par rapport à la sortie qu'ils utilisent.
+
+\subsection{Les opérations mathématiques}
+
 
 \section{Diagramme UML}
-
-Là encore, l'architecture retenue contient 2 classes mères : Node et Graph, un graph étant constitué de plusieurs nodes qui connaissent chacune leurs parents et leurs enfants.
-
-La différence principale avec l'architecture précédente est dans la modularité de la classe Node. Bien qu'elle joue un rôle similaire à celui de la classe Neuron dans le modèle Neuron/Network, elle est bien plus souple : une node peut représenter une entrée du graph, un vecteur de poids, une opération élémentaire (addition, soustraction, produit scalaire), ou une fonction (fonction d'activation d'un neurone ou fonction de coût du réseau). Une node prend pour entrée une matrice (ou 2 dans le cas des opérateurs élémentaires), et donne en sortie ses résultats sous la forme d'une matrice de taille adaptée. De même elle peut calculer le gradient par rapport à ses entrées étant donné celui de ses enfants toujours sous forme matricielle.  Cette capacité des nodes à gérer les matrices est primordiale car elle permet de créer un réseau ne possédant qu'une seule node d'entrée et de propager à travers lui tout un lot d'exemples en une seule fois, diminuant ainsi grandement le nombre d'appels objet en les remplaçant par des opérations matricielles. Les résultats obtenus avec cette architecture permettront par la suite de confirmer que les appels objets et non les opérations occupaient la majeure partie du temps de calcul dans l'implémentation présentée en chapitre 1.
 
 \begin{figure}[!h]
 \centering
@@ -128,10 +137,10 @@ La différence principale avec l'architecture précédente est dans la modularit
 \label{graphe_de_calcul}
 \end{figure}
 
-Un graph commence par une node d'entrée, suivie d'un ensemble de nodes de calcul dont la dernière est qualifiée de node de sortie. Une ou plusieurs node(s) de fonction de coût prennent pour parent la node de sortie, une node d'entrée qu'on actualisera aux valeurs des sorties attendues lors de l'entrainement et une node de régularisation. Enfin on clôt le graph par une node qui possède un gradient unitaire constant et aucune sortie. Elle permettra d'initier la descente du gradient dans la pile des appels récursifs des nodes depuis les entrées vers la fin du graph. C'est le graph qui gère la propagation des exemples et la descente du gradient à travers les nodes mais son rôle est très limité de par la grande autonomie qui est donnée à celles-ci. Les fonctions de propagation et rétropropagation de chaque node sont en effet codée de sorte à ce qu'un unique appel de leur fonction de propagation (respectivement rétropropagation) sur la node d'entrée (respectivement de sortie) donne lieu à une cascade d'appel jusqu'à l'obtention du résultat voulu. Dans une propagation par exemple, on appelle la méthode « propager » sur la dernière node du réseau qui l’appellera elle-même sur ses parents pour calculer sa sortie, ce qui actualisera les sorties de toutes les nodes nécessaires au calcul du résultat initialement demandé.
+
 
 
 
 \section{Résultats}
 
-L'architecture en Graphe de Calcul donne de très bons résultats du point de vue de la rapidité de calcul. On observe par exemple une réduction d'un facteur 1000 du temps de calcul pour l'entrainement du réseau simple sur l'ensemble MNIST par rapport à l'implémentation "naïve" du chapitre 1. Ces performances sont atteintes grâce à la diminution du nombre d'appels objets, remplacés par des calculs matriciels sur des matrices de grande taille gérées par des bibliothèques efficaces.
+L'architecture en Graphe de Calcul donne de très bons résultats du point de vue de la rapidité de calcul. On observe par exemple une réduction d'un facteur 1000 du temps de calcul pour l'entrainement du réseau simple sur l'ensemble MNIST par rapport à l'implémentation "naïve" du chapitre 2. Ces performances sont atteintes grâce à la diminution du nombre d'appels objets, remplacés par des calculs matriciels sur des matrices de grande taille gérées par des bibliothèques efficaces.
