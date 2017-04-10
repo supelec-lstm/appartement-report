@@ -28,7 +28,7 @@ On aurait donc envie de s'affranchir de la structure du neurone pour seulement m
 
 \section{Définitions}
 
-\begin{definition}
+\begin{definition}[Graphe de calcul]
 Un graphe de calcul est un graphe représentant une fonction mathématique. Un n\oe{}ud de ce graphe représente soit une une variable, des poids ou une opération mathématique. Formellement, nous noterons $\mathcal{G}(V, A, V_{var}, (V_{op}, f), (V_{poids}, \theta))$ le graphe $\mathcal{G}$ dont les n\oe{}uds sont $V$, les arêtes $A$, $V_{var} \subset V$ les n\oe{}uds réprésentant une variable, $V_{op} \subset V$ ceux représentant une opération et $f$ les opérations en question, et $V_{poids} \subset V$ ceux représentant des poids et $\theta$ les poids associés.
 \end{definition}
 
@@ -134,7 +134,7 @@ Lors de la propagation, un n\oe{}ud demande ses entrées à ses parents puis cal
 
 \subsection{Les opérations mathématiques}
 
-Dans cette sous-section, nous allons décrire les symboles ainsi que les formules des n\oe{}uds que nous avons implémentés.
+Dans cette sous-section, nous allons décrire les symboles ainsi que les formules des n\oe{}uds que nous avons implémentés. \label{nodes}
 
 \begin{figure}[h!]
 \begin{center}
@@ -170,7 +170,64 @@ Dans cette sous-section, nous allons décrire les symboles ainsi que les formule
 \caption{N\oe{}ud à deux entrées et une sortie}
 \end{figure}
 
-\subsection{Démonstrations}
+\subsection{Dérivation matricielle}
+
+Afin d'avoir des performances correctes en utilistant Python, nous avions comme contrainte d'optimiser notre utilisation de la bibliothèque \texttt{numpy}. Pour cela, il faut privilégier les appels à cette librairie qui exécute du code compilé plutôt que d'écrire nous-même les calculs en Python qui seraient interprétés et donc exécutés bien plus lentement.
+
+Or afin d'utiliser la descente du gradient, il faut calculer la dérivée du coût qui est scalaire par rapport aux poids qui sont stockés dans une matrice. Le moyen le plus efficace  de calculer cette quantité est d'obtenir une formule faisant intervenir directement des matrices.
+
+Au début du projet, nous n'étions pas très à l'aise avec les dérivées matricielles. De plus, nous n'avons pas trouvé dans la littérature de document expliquant clairement le concept et donnant un formulaire utile pour les réseaux de neurones. Dans cette sous-section nous allons donc rappeler le concept et les notations. Puis nous démontrerons les formules énoncées ci-dessus pour expliciter la méthode permettant de d'obtenir de telles formules.
+
+\begin{definition}[Dérivée tensorielle]
+Soit une fonction $f : \mathbb{R}^{m_1 \times ... \times m_p} \rightarrow \mathbb{R}^{n_1 \times ... \times n_q}$. Nous appelerons dérivée tensorielle de f en $x$ notée $\frac{\partial f}{\partial x}(x)$, le tenseur $(\frac{\partial f_{j_1, ..., j_q}}{\partial x_{i_1, ..., i_p}}(x))_{i_1, ..., i_p, j_1, ..., j_q} \in  \mathbb{R}^{m_1 \times ... \times m_p \times n_1 \times ... \times n_q}$ 
+\end{definition}
+
+Dans notre cas, nous calculerons toujours les dérivées d'une fonction à valeur dans $\mathbb{R}$, le coût et à arguments matriciels, les poids. Nous utiliserons donc le cas particulier suivant.
+
+\begin{definition}[Dérivée matricielle]
+Soit une fonction $f : \mathbb{R}^{m \times n} \rightarrow \mathbb{R}$. Nous appelerons dérivée matricielle de f en $x$ notée $\frac{\partial f}{\partial x}(x)$, la matrice $(\frac{\partial f}{\partial x_{i, j}}(x))_{i, j} \in  \mathbb{R}^{m \times n}$ 
+\end{definition}
+
+\begin{remark}
+Dans la suite du document, si $y = f(x)$, nous noterons $\frac{\partial f}{\partial x}(x)$, la dérivée de $f$ par rapport à $x$ évaluée en $x$, $\frac{\partial y}{\partial x}$.
+\end{remark}
+
+\begin{remark}
+Nous avons choisi la convention $\frac{\partial f}{\partial x}(x) = (\frac{\partial f}{\partial x_{i, j}}(x))_{i, j}$ cependant il est possible que d'autres auteurs utilisent la convention $\frac{\partial f}{\partial x}(x) = (\frac{\partial f}{\partial x_{i, j}}(x))_{j, i}$. Les deux conventions ont des avantages et des inconvénients, aucune ne fait a priori consensus. Nous avons choisi la première car la dérivée a la même taille que l'argument. Par conséquent pour la descente du gradient, nous pouvons simplement écrire :
+$$
+w(t+1) = w(t) - \eta \frac{\partial E}{\partial w} 
+$$
+ce qui est fort élégant.
+\end{remark}
+
+Donnons dès à présent, le résultat qui va nous être le plus utile, la règle de la chaine en version matricielle.
+
+\begin{proposition}[Règle de la chaine]
+Soit $f : \mathbb{R}^{m \times n} \rightarrow \mathbb{R}^{p \times q}$, $g : \mathbb{R}^{p \times q} \rightarrow \mathbb{R}$, et $x \in \mathbb{R}^{m \times n}$. Notons $y = f(x)$ et $z = g(y)$ pour simplifier, on a alors :
+$$
+\forall i \in \{1, ..., m\}, j \in \{1, ..., n\}, (\frac{\partial z}{\partial x})_{i, j} = \sum_{k \in \{1, ..., p\}, l \in \{1, ..., q\}}{\frac{\partial z}{\partial y_{k, l}}\frac{\partial y_{k, l}}{\partial x_{i, j}}}
+$$
+\end{proposition}
+
+Nous remarquons donc que dans le cas général, il n'y a pas de formule simple permettant de calculer la dérivée. Cependant pour les opérations que nous utilisons, cette formule se simplifie.
+
+Nous allons dans la suite démontrer toutes les formules énoncées dans la sous-section \ref{nodes}. Cette partie pourra servir d'exercices pour le lecteur voulant s'initier à la dérivation matricielle ou de mémo pour ses rédacteurs.
+
+Afin de rester dans le cadre de l'apprentissage automatique, nous appelerons comme dans les sections précédentes $E$ notre fonction à valeurs dans $\mathbb{R}$.
+
+La démarche pour dériver chaque formule sera toujours la même :
+\begin{enumerate}
+\item On exprime $\frac{\partial E}{\partial x_{i, j}}$ en fonction des $(\frac{\partial E}{\partial y_{k, l}})_{k, l}$ en utilisant la règle de la chaine énoncée ci-dessus. On ne manipule ici que des dérivées scalaires, on peut donc utiliser toutes les opérations habituelles sans prendre de précautions.
+\item On reconnait dans l'expression obtenue de $\frac{\partial E}{\partial x_{i, j}}$ une opération connue qu'il est possible d'exprimer en notation matricielle.
+\end{enumerate}
+
+\begin{proposition}
+Si $y = x_1 + x_2$ alors $\frac{\partial E}{\partial x_1} = \frac{\partial E}{\partial x_2} = \frac{\partial E}{\partial y}$.
+\end{proposition}
+
+\begin{proof}
+Soit $i \in \{1, ..., m\}, j \in \{1, ..., n\}$, $\frac{\partial E}{\partial x_{1_{i, j}}} = \frac{\partial E}{\partial y_{i, j}}\frac{\partial y_{i, j}}{\partial x_{1_{i, j}}} = \frac{\partial E}{\partial y_{i, j}}$ car $x_{1_{i, j}}$ n'est utilisé que pour calculer $y_{i, j}$ et $\frac{\partial y_{i, j}}{\partial x_{1_{i, j}}} = 1$. On procède de même pour $\frac{\partial E}{\partial x_2}$.
+\end{proof}
 
 \section{La classe Graph}
 
