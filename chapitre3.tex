@@ -6,9 +6,12 @@ Nous avons vu précédemment que l'architecture du réseau de neurones peut êtr
 
 \begin{figure}
 \begin{center}
-\input{images/chapter3/reseau_3_5_3.tex}
+\begin{tabular}{c}
+\input{images/chapter3/reseau_3_5_3.tex} \\
+\input{images/chapter3/graphe_3_5_3.tex} \\
+\end{tabular}
 \end{center}
-\caption{Réseau de neurones à 3 entrées, 5 neurones cachés et 3 neurones de sorties}
+\caption{Réseau de neurones à 3 entrées, 5 neurones cachés et 3 neurones de sorties (en haut). La représentation équivalente en utilisant un graphe de calculs (en bas).}
 \label{reseau_3_5_3}
 \end{figure}
 
@@ -45,8 +48,11 @@ Les graphes de calculs offrent une très grande liberté. Il est possible de rep
 \Procedure{$evaluer\_graphe$}{$\mathcal{G}(V, A, V_{var}, (V_{op}, f), (V_{poids}, \theta)), x$}
 \Function{$evaluer\_noeud$}{$n_j$}
 	\If{$déjàCalculé[j]$ est $faux$}
+		\State // 1. On récupère les valeurs des entrées.
 		\State $t \leftarrow (evaluer\_noeud(i)_k, (n_i, k, l)\text{ tel que }(n_i, k, n_j, l) \in A)$
+		\State // 2. On calcule les valeurs de sortie.
 		\State $y_j \leftarrow f_j(t)$
+		\State // 3. On mémoïse.
 		\State $déjàCalculé[j] \leftarrow vrai$
 	\EndIf
 	\State \Return $y_j$
@@ -86,14 +92,17 @@ La formule \ref{retropropagation_graphe} nous permet de décrire un algorithme d
 \begin{algorithmic}
 \Procedure{$retropropager\_gradient$}{$\mathcal{G}(V, A, V_{var}, (V_{op}, f), (V_{poids}, \theta)), x, y$}
 \Function{$calculer\_gradient$}{$n_i$}
-	\If{$déjàCalculé_j$ est $faux$}
+	\If{$déjàCalculé[i]$ est $faux$}
+		\State // 1. Pour chaque sortie, on récupère la dérivée du coût par rapport à celle-ci.
 		\For{k dans $\{1, ..., out(n_i)\}$}
-			\State $\frac{\partial E}{\partial y_{i, k}} \leftarrow \sum_{(n_j, l)\text{ tel que }(n_i, k, n_j, l)}{calculer\_gradient(n_j)_l}$
+			\State $\frac{\partial E}{\partial y_{i, k}} \leftarrow \sum\limits_{(n_j, l)\text{ tel que }(n_i, k, n_j, l) \in A}{calculer\_gradient(n_j)_l}$
 		\EndFor
-		\For{l dans $\{1, ..., out(n_i)\}$}
-			\State $\frac{\partial E}{\partial x_{i, l}} \leftarrow \sum_{k \in \{1, ..., out(n_i) \}}{\frac{\partial f_{i, k}}{\partial x_{i, l}}(x)\frac{\partial E}{\partial y_{i, k}}}$
+		\State // 2. Pour chaque entrée, on calcule la dérivée du coût par rapport à celle-ci.
+		\For{l dans $\{1, ..., in(n_i)\}$}
+			\State $\frac{\partial E}{\partial x_{i, l}} \leftarrow \sum\limits_{k \in \{1, ..., out(n_i) \}}{\frac{\partial f_{i, k}}{\partial x_{i, l}}(x)\frac{\partial E}{\partial y_{i, k}}}$
 		\EndFor
-		\State $déjàCalculé_j \leftarrow vrai$
+		\State // 3. On mémoïse.
+		\State $déjàCalculé[i] \leftarrow vrai$
 	\EndIf
 	\State \Return $\frac{\partial E}{\partial x_j}$
 \EndFunction
@@ -127,10 +136,11 @@ Un n\oe{}ud aura deux missions : calculer sa sortie et rétropropager le gradien
 \input{images/chapter3/node_propagation.tex} & \input{images/chapter3/node_backpropagation.tex} \\
 \end{tabular}
 \end{center}
+\caption{Représentation de la propagation (à gauche) et de la rétropropagation (à droite) au sein d'un n\oe{}ud.}
 \label{node}
 \end{figure}
 
-Lors de la propagation, un n\oe{}ud demande ses entrées à ses parents puis calcule sa sortie et la mémoïse. De façon analogue, lors de la rétropropagation, un n\oe{}ud demande à chacun de ses enfants le gradient par rapport à la sortie qu'ils utilisent.
+Lors de la propagation, un n\oe{}ud demande ses entrées à ses parents puis calcule sa sortie et la mémoïse. De façon analogue, lors de la rétropropagation, un n\oe{}ud demande à chacun de ses enfants le gradient par rapport à la sortie qu'ils utilisent puis s'en sert pour calculer le gradient par rapport à ses entrées et mémoïse.
 
 \subsection{Les opérations mathématiques}
 
