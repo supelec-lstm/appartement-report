@@ -107,7 +107,7 @@ La figure \ref{neurone} montre une représentation graphique d'un neurone.
 
 \begin{figure}
 \begin{center}
-\input{"images/neurone.tex"}
+\input{"images/chapter1/neurone.tex"}
 \caption{Représentation graphique d'un neurone. Le biais est ici considéré comme le poids associé à une entrée constante égale à 1.}
 \label{neurone}
 \end{center}
@@ -128,9 +128,9 @@ La figure \ref{fonctions_activation} montre les graphes de ces différentes fonc
 \begin{figure}
 \begin{center}
 \begin{tabular}{cc}
-\includegraphics[scale=0.25]{images/id.png} & \includegraphics[scale=0.25]{images/u.png} \\
-\includegraphics[scale=0.25]{images/tanh.png} & \includegraphics[scale=0.25]{images/s.png} \\
-\multicolumn{2}{c}{\includegraphics[scale=0.25]{images/relu.png}}
+\includegraphics[scale=0.25]{images/chapter1/id.png} & \includegraphics[scale=0.25]{images/chapter1/u.png} \\
+\includegraphics[scale=0.25]{images/chapter1/tanh.png} & \includegraphics[scale=0.25]{images/chapter1/s.png} \\
+\multicolumn{2}{c}{\includegraphics[scale=0.25]{images/chapter1/relu.png}}
 \end{tabular}
 \caption{Graphe entre -5 et 5 de la fonction identité (en haut à gauche), de l'échelon (en haut à droite), de la tangente hyperbolique (au milieu à gauche), de la sigmoïde (au milieu à droite) et de ReLU (en bas).} 
 \label{fonctions_activation}
@@ -152,7 +152,7 @@ La figure \ref{hyperplan} illustre cette séparation. Ce cas particulier de neur
 
 \begin{figure}
 \begin{center}
-\input{"images/hyperplan_separateur.tex"}
+\input{"images/chapter1/hyperplan_separateur.tex"}
 \caption{Hyperplan séparateur dans un espace à deux dimensions correspondant à un certain vecteur de poids $w$. La partie rouge correspond aux entrées classifiées 1 et en bleue celles qui sont classifiées 0.}
 \label{hyperplan}
 \end{center}
@@ -164,7 +164,7 @@ Si la fonction d'activation est une sigmoïde, la sortie du neurone peut être i
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.5]{images/or.png}
+\includegraphics[scale=0.5]{images/chapter1/or.png}
 \caption{Sortie d'une régression logistique prenant en entrée un vecteur de $\mathbb{R}^2$ sur $[-0.5, 1.5] \times [-0.5, 1.5]$. L'axe $x_1$ et l'axe $x_2$ correspondent respectivement à la première et à la deuxième coordonnée de l'entrée.}
 \label{regression_logistique}
 \end{center}
@@ -179,7 +179,7 @@ Le point commun entre tous les neurones est qu'ils sont seulement capable de mod
 \begin{figure}
 \begin{center}
 \begin{tabular}{cc}
-\includegraphics[scale=0.35]{images/disk_dataset.png} & \includegraphics[scale=0.35]{images/disk_learned.png} \\
+\includegraphics[scale=0.35]{images/chapter1/disk_dataset.png} & \includegraphics[scale=0.35]{images/chapter1/disk_learned.png} \\
 \end{tabular}
 \caption{À gauche un ensemble de données de 500 points. Les points à l'intérieur du cercle de rayon 0.5 et de centre $(0; 0)$ sont en rouge, les autres en bleu. À droite, la représentation du disque apprise par le neurone.} 
 \label{disque}
@@ -206,8 +206,8 @@ Il existe certaines classes particulière de réseau de neurones. Tout d'abord, 
 \begin{figure}
 \begin{center}
 \begin{tabular}{cc}
-\input{images/reseau_exemple.tex} & \input{images/reseau_recurrent.tex} \\
-\input{images/reseau_feedforward.tex} & \input{images/reseau_multicouche.tex} \\
+\input{images/chapter1/reseau_exemple.tex} & \input{images/chapter1/reseau_recurrent.tex} \\
+\input{images/chapter1/reseau_feedforward.tex} & \input{images/chapter1/reseau_multicouche.tex} \\
 \end{tabular}
 \caption{Exemples de réseaux de neurones. Un réseau de neurones quelconque (en haut à gauche),  récurrent (en haut à droite), feedforward (en bas à gauche) et multicouche (en bas à droite).} 
 \label{reseaux}
