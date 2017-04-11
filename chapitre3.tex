@@ -32,7 +32,7 @@ On aurait donc envie de s'affranchir de la structure du neurone pour seulement m
 \section{Définitions}
 
 \begin{definition}[Graphe de calcul]
-Un graphe de calcul est un graphe représentant une fonction mathématique. Un n\oe{}ud de ce graphe représente soit une une variable, des poids ou une opération mathématique. Formellement, nous noterons $\mathcal{G}(V, A, V_{var}, (V_{op}, f), (V_{poids}, \theta))$ le graphe $\mathcal{G}$ dont les n\oe{}uds sont $V$, les arêtes $A$, $V_{var} \subset V$ les n\oe{}uds réprésentant une variable, $V_{op} \subset V$ ceux représentant une opération et $f$ les opérations en question, et $V_{poids} \subset V$ ceux représentant des poids et $\theta$ les poids associés.
+Un graphe de calcul est un graphe représentant une fonction mathématique. Un n\oe{}ud de ce graphe représente soit une variable, des poids ou une opération mathématique. Formellement, nous noterons $\mathcal{G}(V, A, V_{var}, (V_{op}, f), (V_{poids}, \theta))$ le graphe $\mathcal{G}$ dont les n\oe{}uds sont $V$, les arêtes $A$, $V_{var} \subset V$ les n\oe{}uds réprésentant une variable, $V_{op} \subset V$ ceux représentant une opération et $f$ les opérations en question, et $V_{poids} \subset V$ ceux représentant des poids et $\theta$ les poids associés.
 \end{definition}
 
 Dans cette définition, nous considérons les variables comme les arguments du graphe de calculs. En ce qui concerne, les réseaux de neurones, les entrées seront un n\oe{}ud représentant une variable. Les poids sont les paramètres de la fonction. Ce seront les poids des neurones par exemple. Nous n'imposons pour l'instant aucune limite aux opérations mathématiques pouvant être effectuées au sein des graphes de calculs.
@@ -207,6 +207,8 @@ $$
 w(t+1) = w(t) - \eta \frac{\partial E}{\partial w} 
 $$
 ce qui est fort élégant.
+
+Nous donnerons tous les résultats en suivant notre convention. Cependant, ce n'est pas une fatalité puisqu'il suffit de transposer les résultats pour les obtenir selon l'autre convention.
 \end{remark}
 
 Donnons dès à présent, le résultat qui va nous être le plus utile, la règle de la chaine en version matricielle.
@@ -313,6 +315,54 @@ Comme l'addition est faite terme à terme, pour tout $i \in \{1, ..., m\}, j \in
 $$
 \frac{\partial E}{\partial x_{1_{i, j}}} = \frac{\partial E}{\partial y_{i, j}}\frac{\partial y_{i, j}}{\partial x_{1_{i, j}}} = \frac{\partial E}{\partial y_{i, j}}
 $$ 
+
+On procède de même pour $\frac{\partial E}{\partial x_2}$.
+\end{proof}
+
+\begin{proposition}
+Si $y = x_1 - x_2$ alors $\frac{\partial E}{\partial x_1} = \frac{\partial E}{\partial y}$ et $\frac{\partial E}{\partial x_2} = -\frac{\partial E}{\partial y}$.
+\end{proposition}
+
+\begin{proof}
+Même preuve que pour l'addition. La seule différence est que pour tout $i \in \{1, ..., m\}, j \in \{1, ..., n\}, \frac{\partial y_{i, j}}{\partial x_{2_{i, j}}} = -1$.
+\end{proof}
+
+\begin{proposition}
+Si $y = x_1 \times x_2$ alors $\frac{\partial E}{\partial x_1} = \frac{\partial E}{\partial y} x_2^T$ et $\frac{\partial E}{\partial x_2} = x_1^T \frac{\partial E}{\partial y}$.
+\end{proposition}
+
+\begin{proof}
+On a pour tout $i \in \{1, ..., m\}, k \in \{1, ..., p\}, y_{i, k} = \sum_{j = 1}^{n}{x_{1_{i, j}}x_{2_{j, k}}}$.
+
+Donc si $i \in \{1, ..., m\}, j \in \{1, ..., n\}, x_{1_{i, j}}$ intervient seulement dans le calcul de $y_{i, k}$ pour $k \in \{1, ..., p\}$. On en déduit que :
+$$
+\frac{\partial E}{\partial x_{1_{i, j}}} = \sum_{k = 1}^{p}{\frac{\partial E}{\partial y_{i, k}}\frac{\partial y_{i, k}}{\partial x_{1_{i, j}}}} = \sum_{k = 1}^{p}{\frac{\partial E}{\partial y_{i, k}}x_{2_{j, k}}} 
+$$ 
+On reconnait la l'expression du produit matriciel entre $\frac{\partial E}{\partial y}$ et $x_2^T$, d'où :
+$$
+\frac{\partial E}{\partial x_1} = \frac{\partial E}{\partial y} x_2^T
+$$
+
+Procédons de même pour $\frac{\partial E}{\partial x_2}$. Soit $j \in \{1, ..., n\}, k \in \{1, ..., p\}, x_{2_{j, k}}$ intervient seulement dans le calcul de $y_{i, k}$ pour $i \in \{1, ..., m\}$. On en déduit que :
+$$
+\frac{\partial E}{\partial x_{2_{j, k}}} = \sum_{i = 1}^{m}{\frac{\partial E}{\partial y_{i, k}}\frac{\partial y_{i, k}}{\partial x_{2_{j, k}}}} = \sum_{i = 1}^{m}{\frac{\partial E}{\partial y_{i, k}}x_{1_{i, j}}} 
+$$ 
+On reconnait la l'expression du produit matriciel entre $x_1^T$ et $\frac{\partial E}{\partial y}$, d'où :
+$$
+\frac{\partial E}{\partial x_2} = x_1^T \frac{\partial E}{\partial y}
+$$
+\end{proof}
+
+\begin{proposition}
+Si $y = x_1 \odot x_2$ alors $\frac{\partial E}{\partial x_1} = \frac{\partial E}{\partial y} \odot x_2$ et $\frac{\partial E}{\partial x_2} = \frac{\partial E}{\partial y} \odot x_1$.
+\end{proposition}
+
+\begin{proof}
+Comme la multiplication est faite terme à terme, pour tout $i \in \{1, ..., m\}, j \in \{1, ..., n\}$, $y_{i, j} = x_{1_{i, j}}x_{2_{i, j}}$ ne dépend que de $x_{1_{i, j}}$ et de $x_{2_{i, j}}$ et donc :
+$$
+\frac{\partial E}{\partial x_{1_{i, j}}} = \frac{\partial E}{\partial y_{i, j}}\frac{\partial y_{i, j}}{\partial x_{1_{i, j}}} = \frac{\partial E}{\partial y_{i, j}}x_{2_{i, j}}
+$$
+On reconnait la formule du produit terme à terme entre $\frac{\partial E}{\partial y}$ et $x_2$.
 
 On procède de même pour $\frac{\partial E}{\partial x_2}$.
 \end{proof}
