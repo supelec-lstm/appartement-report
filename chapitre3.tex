@@ -22,7 +22,7 @@ y = \sigma(\sigma(xW_1)W_2)
 \end{equation}
 où la fonction $\sigma$ s'applique terme à terme. 
 
-Sur la figure \ref{reseau_3_5_3}, à droite, est représentée cette formule de manière graphique. Un tel graphe sera appelé graphe de calculs.
+Sur la figure \ref{reseau_3_5_3}, en bas, est représentée cette formule de manière graphique. Un tel graphe sera appelé graphe de calculs.
 
 Cette modélisation matricielle a de nombreux avantages. Tout d'abord, elle est plus compacte et simple à manipuler et à visualiser. Puis, elle a un avantage certain pour notre implémentation en Python car elle permet d'utiliser pleinement la librairie d'algèbre linéaire \texttt{numpy} ce qui accélerera grandement les calculs. Enfin, il est facile d'étendre la formule précédente au calcul de la sortie de plusieurs vecteurs d'entrées. En effet si $X \in \mathbb{R}^{N \times m}$ est une matrice contenant $N$ vecteurs d'entrées alors la sortie du réseau s'écrit :
 $$Y = \sigma(\sigma(XW_1)W_2)$$
@@ -140,13 +140,15 @@ Un n\oe{}ud aura deux missions : calculer sa sortie et rétropropager le gradien
 \label{node}
 \end{figure}
 
-Lors de la propagation, un n\oe{}ud demande ses entrées à ses parents puis calcule sa sortie et la mémoïse. De façon analogue, lors de la rétropropagation, un n\oe{}ud demande à chacun de ses enfants le gradient par rapport à la sortie qu'ils utilisent puis s'en sert pour calculer le gradient par rapport à ses entrées et mémoïse.
+Lors de la propagation, un n\oe{}ud demande ses entrées à ses parents puis calcule sa sortie et la mémoïse. De façon analogue, lors de la rétropropagation, un n\oe{}ud demande à chacun de ses enfants le gradient par rapport à la sortie qu'ils utilisent puis s'en sert pour calculer le gradient par rapport à ses entrées et mémoïse
+.
 
 \subsection{Les opérations mathématiques}
 
 Dans cette sous-section, nous allons décrire les symboles ainsi que les formules des n\oe{}uds que nous avons implémentés. \label{nodes}
 
-\begin{figure}[h!]
+Nous commençons d'abord par décrire les n\oe{}uds à une entrée et une sortie :
+
 \begin{center}
 \begin{tabular}{|m{4cm}|m{3.cm}|m{3.cm}|}
 \hline
@@ -158,10 +160,9 @@ Dans cette sous-section, nous allons décrire les symboles ainsi que les formule
 \hline
 \end{tabular}
 \end{center}
-\caption{N\oe{}ud à une entrée et une sortie}
-\end{figure}
 
-\begin{figure}[h!]
+Puis ceux à deux entrées et une sortie :
+
 \begin{center}
 \begin{tabular}{|m{4cm}|m{3.cm}|m{3.cm}|}
 \hline
@@ -177,8 +178,6 @@ Dans cette sous-section, nous allons décrire les symboles ainsi que les formule
 \hline
 \end{tabular}
 \end{center}
-\caption{N\oe{}ud à deux entrées et une sortie}
-\end{figure}
 
 \subsection{Dérivation matricielle}
 
@@ -232,11 +231,90 @@ La démarche pour dériver chaque formule sera toujours la même :
 \end{enumerate}
 
 \begin{proposition}
+Si $y = \sigma(x)$ alors $\frac{\partial E}{\partial x} = \frac{\partial E}{\partial y} \odot y \odot (1 - y)$.
+\label{derivative_sigmoid}
+\end{proposition}
+
+Afin de démontrer ce résultat, nous utiliserons le lemme suivant donnant le résultat dans le cas scalaire.
+
+\begin{lemma}
+Soit $\sigma : x \in \mathbb{R} \mapsto \frac{1}{1 + \exp(-x)}$, on a :
+$$ 
+\forall x \in \mathbb{R}, \sigma'(x) = \sigma(x)(1 - \sigma(x))
+$$
+\label{sigmoid_scalar}
+\end{lemma}
+
+\begin{proof}
+Soit $x \in \mathbb{R}$, en utilisant les règles de dérivation, on a :
+$$
+\sigma'(x) = \frac{\exp(-x)}{(1 + \exp(-x))^2} = \frac{1}{1 + \exp(-x)}\frac{\exp(-x)}{1 + \exp(-x)}
+$$
+d'où :
+$$
+\sigma'(x) = \sigma(x)\frac{(1 + \exp(x)) - 1}{1 + \exp(-x)} =  \sigma(x)(1 - \sigma(x))
+$$
+\end{proof}
+
+Nous pouvons alors démontrer la proposition \ref{derivative_sigmoid}.
+
+\begin{proof}
+L'opération $\sigma$ étant appliquée terme à terme, on a que :
+$$
+\forall i \in \{1, ..., m\}, j \in \{1, ..., n\}, \frac{\partial E}{\partial x_{i, j}} = \frac{\partial E}{\partial y_{i, j}}\frac{\partial y_{i, j}}{\partial x_{i, j}}
+$$
+Or d'après le lemme \ref{sigmoid_scalar}, $\frac{\partial y_{i, j}}{\partial x_{i, j}} = y_{i, j}(1 - y_{i, j})$. Donc :
+$$
+\forall i \in \{1, ..., m\}, j \in \{1, ..., n\}, \frac{\partial E}{\partial x_{i, j}} = \frac{\partial E}{\partial y_{i, j}}y_{i, j}(1 - y_{i, j})
+$$
+On reconnait alors des produits terme à terme et on en conclut que :
+$$
+\frac{\partial E}{\partial x} = \frac{\partial E}{\partial y} \odot y \odot (1 - y)
+$$
+\end{proof}
+
+\begin{proposition}
+Si $y = \tanh(x)$ alors $\frac{\partial E}{\partial x} = \frac{\partial E}{\partial y} \odot (1 - y \odot y)$.
+\label{derivative_tanh}
+\end{proposition}
+
+Rappelons sans démonstration, le résultat bien connu sur la dérivée de $\tanh$.
+
+\begin{lemma}
+$$ 
+\forall x \in \mathbb{R}, \tanh'(x) = 1 - \tanh(x)^2
+$$
+\label{tanh_scalar}
+\end{lemma}
+
+À l'aide de ce résultat, prouvons la proposition \ref{derivative_tanh}.
+
+\begin{proof}
+De même que pour $\sigma$, l'opération $\tanh$ étant appliquée terme à terme, on a que :
+$$
+\forall i \in \{1, ..., m\}, j \in \{1, ..., n\}, \frac{\partial E}{\partial x_{i, j}} = \frac{\partial E}{\partial y_{i, j}}\frac{\partial y_{i, j}}{\partial x_{i, j}}
+$$
+Or d'après le lemme \ref{tanh_scalar}, $\frac{\partial y_{i, j}}{\partial x_{i, j}} = 1 - y_{i, j}^2$. Donc :
+$$
+\forall i \in \{1, ..., m\}, j \in \{1, ..., n\}, \frac{\partial E}{\partial x_{i, j}} = \frac{\partial E}{\partial y_{i, j}}(1 - y_{i, j}^2)
+$$
+On reconnait alors, ici encore, des produits terme à terme et on en conclut que :
+$$
+\frac{\partial E}{\partial x} = \frac{\partial E}{\partial y} \odot (1 - y \odot y)
+$$
+\end{proof}
+
+\begin{proposition}
 Si $y = x_1 + x_2$ alors $\frac{\partial E}{\partial x_1} = \frac{\partial E}{\partial x_2} = \frac{\partial E}{\partial y}$.
 \end{proposition}
 
 \begin{proof}
-Soit $i \in \{1, ..., m\}, j \in \{1, ..., n\}$, $\frac{\partial E}{\partial x_{1_{i, j}}} = \frac{\partial E}{\partial y_{i, j}}\frac{\partial y_{i, j}}{\partial x_{1_{i, j}}} = \frac{\partial E}{\partial y_{i, j}}$ car $x_{1_{i, j}}$ n'est utilisé que pour calculer $y_{i, j}$ et $\frac{\partial y_{i, j}}{\partial x_{1_{i, j}}} = 1$. On procède de même pour $\frac{\partial E}{\partial x_2}$.
+Comme l'addition est faite terme à terme, pour tout $i \in \{1, ..., m\}, j \in \{1, ..., n\}$, $y_{i, j} = x_{1_{i, j}} + x_{2_{i, j}}$ ne dépend que de $x_{1_{i, j}}$ et de $x_{2_{i, j}}$ et donc :
+$$
+\frac{\partial E}{\partial x_{1_{i, j}}} = \frac{\partial E}{\partial y_{i, j}}\frac{\partial y_{i, j}}{\partial x_{1_{i, j}}} = \frac{\partial E}{\partial y_{i, j}}
+$$ 
+
+On procède de même pour $\frac{\partial E}{\partial x_2}$.
 \end{proof}
 
 \section{La classe Graph}
@@ -244,7 +322,13 @@ Soit $i \in \{1, ..., m\}, j \in \{1, ..., n\}$, $\frac{\partial E}{\partial x_{
 
 \section{Diagramme UML}
 
+Afin de résumer, les propos de cette partie, nous présentons le diagramme de classe de notre implémentation en Python.
+
 
 \section{Conclusion}
 
-L'architecture en Graphe de Calcul donne de très bons résultats du point de vue de la rapidité de calcul. On observe par exemple une réduction d'un facteur 1000 du temps de calcul pour l'entrainement du réseau simple sur l'ensemble MNIST par rapport à l'implémentation "naïve" du chapitre 2. Ces performances sont atteintes grâce à la diminution du nombre d'appels objets, remplacés par des calculs matriciels sur des matrices de grande taille gérées par des bibliothèques efficaces.
+Nous avons décrit les graphes de calculs, donnés les algorithmes permenttant de calculer efficacement la sortie de celui-ci et de calculer la dérivée du coût par rapport aux paramètres. Ensuite, nous sommes rentrés davantage dans les détails en donnant les formules de propagation et de rétropropagation pour les n\oe{}uds les plus utiles dans le cadre de l'apprentissage automatique. Finalement nous avons décrit notre implémentation en donnant le diagramme de classes.
+
+Dans cette partie, nous avons développé un outil bien plus puissant que les réseaux de neurones. En effet, nous avons donné un cadre et une méthode permettant d'optimiser théoriquement n'importe quelle fonction pour peu que nous puissions la décomposer en opérations dont nous sachons calculer la dérivée. Cette grande puissance théorique vient de plus avec une grande facilité d'implémentation et d'utilisation.
+
+Finalement, nous verrons dans la partie suivante que notre implémentation graphes de calculs est bien plus performante que notre précédente modélisation en neurones. En outre, la modularité des graphes de calculs, nous permettra d'exécuter de nombreux tests sur l'architecture et les paramètres des réseaux de neurones, ce que nous détaillerons dans la partie suivante.
