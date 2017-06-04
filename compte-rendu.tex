@@ -6,10 +6,12 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
+\usepackage{caption}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{array}
 \usepackage{pgf,tikz}
+\usepackage{subfig}
 \usetikzlibrary{arrows}
 \usepackage{pgf,tikz}
 
@@ -74,7 +76,7 @@ Ainsi la classe Neuron possède de nombreuses sous-classes correspondant à ces 
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.2]{images/uml_neurone_imp1.png}
+\includegraphics[width=\textwidth]{images/uml_neurone_imp1.png}
 \caption{Déclinaison de la classe neurone}
 \label{uml_neurone_imp1}
 \end{center}
@@ -409,7 +411,7 @@ La sortie de la cellule est obtenue à partir du cell state auquel on applique u
 
 En pratique, on n'est pas sûr qu'une cellule LSTM suive effectivement le principe décrit précédemment. Celui-ci est plutôt une illustration afin de comprendre de manière générale le fonctionnement des LSTM.
 
-La structure d'une cellule LSTM n'est pas non figée. En effet, il est possible de l'adapter en ajoutant, enlevant certains éléments, gates. Par exemple, on peut ajouter une forget gate composée d'une couche de sigmoides au début de la cellule. On multiplie la sortie de cette forget gate afin de garder, supprimer, réduire certaines composantes du cell state. 
+La structure d'une cellule LSTM n'est pas figée. En effet, il est possible de l'adapter en ajoutant, enlevant certains éléments, gates. Par exemple, on peut ajouter une forget gate composée d'une couche de sigmoides au début de la cellule. On multiplie la sortie de cette forget gate afin de garder, supprimer, réduire certaines composantes du cell state. 
 
 \break
 
@@ -493,5 +495,7 @@ W = W - \eta \sum{\frac{\partial J}{\partial W}}
 \section{Implémentation}
 \section{Résultats}
 \section{Autres applications}
+
+\include{chapitre9}
 
 \end{document}
