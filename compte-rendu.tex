@@ -6,12 +6,10 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
-\usepackage{caption}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{array}
 \usepackage{pgf,tikz}
-\usepackage{subfig}
 \usetikzlibrary{arrows}
 \usepackage{pgf,tikz}
 
@@ -39,7 +37,7 @@
 
 \tableofcontents
 
-\include{chapitre1}
+\include{chapitre1.tex}
 
 \chapter{Une première implémentation}
 
@@ -56,17 +54,9 @@ Le neurone a été défini comme une entité autonome, qui comporte des entrées
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.5]{images/uml_simplifie_imp1.png}
-\caption{UML simplifié (à changer)}
-\label{UML simplifié}
-\end{center}
-\end{figure}
-
-\begin{figure}
-\begin{center}
 \includegraphics[scale=0.3]{images/uml_simplifie_maispastrop_imp1.png}
-\caption{UML simplifié maispastrop}
-\label{UML simplifié maispastrop}
+\caption{Diagramme UML des clsses Neuron et Network}
+\label{Diagramme UML des classes Neuron et Network}
 \end{center}
 \end{figure}
 
@@ -76,7 +66,7 @@ Ainsi la classe Neuron possède de nombreuses sous-classes correspondant à ces 
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\textwidth]{images/uml_neurone_imp1.png}
+\includegraphics[scale=0.18]{images/uml_neurone_imp1.png}
 \caption{Déclinaison de la classe neurone}
 \label{uml_neurone_imp1}
 \end{center}
@@ -139,7 +129,7 @@ L'apprentissage s'est donc bien réalisé pour le XOR, les résultats obtenus so
 
 MNIST est une base de données de chiffres écrits à la main réalisée par Yann Lecun. Cette base de donnée est constituée d'un ensemble de données d'apprentissage de 60.000 exemples et un ensemble de test constitué de 10.000 exemple. L'intersection de ces deux ensembles est nulle. Chaque exemple est donc une image d'une taille fixe d'un chiffre écrit à la main, centré. Le but est donc que notre algorithme puisse reconnaître les chiffres écrits.
 
-Nous avons réalisé un premier apprentissage des données MNIST sur un réseau sans couche cachée totalement connecté (fully connected). Ce réseau dispose d'une entrée par pixel des images et de dix sorties, une par chiffre. Un premier apprentissage est réalisé sur le réseau avec un calcul du gradient moyenné sur des batchs de 128 exemples. On calcule alors la précision du réseau de neurones sur l'ensemble complet d'apprentissage ainsi que sur l'ensemble de test tous les 2.000 exemples.
+Nous avons réalisé un premier apprentissage des données MNIST sur un réseau sans couche cachée totalement connecté (fully connected). Ce réseau dispose d'une entrée par pixel des images et de dix sorties, une par chiffre. Chaque entrée associe au pixel une valeur entre 0 et 255 correspond à la nuance de gris du pixel (du blanc au noir). Un premier apprentissage est réalisé sur le réseau avec un calcul du gradient moyenné sur des batchs de 128 exemples. On calcule alors la précision du réseau de neurones sur l'ensemble complet d'apprentissage ainsi que sur l'ensemble de test tous les 2.000 exemples.
 
 \begin{figure}[!h]
 \begin{center}
@@ -154,12 +144,12 @@ On peut remarquer sur ces premiers résultats, que la précision progresse très
 
 
 \section{Conclusion}
-Cette première implémentation intuitive permet ainsi d'obtenir des résultats très satisfaisants, allant jusqu'à 90\% de réussite sur MNIST. De plus, elle met en évidence le fonctionnement d'un réseau de neurones. Cependant, on remarque que les calculs ne sont pas du tout optimisés. Cela explique que le temps d'exécution devient rapidement très long. Dans l'exemple de l'application à l'ensemble de données MNIST, entraîner plusieurs fois le réseau sur l'ensemble d'apprentissage permettrait d'obtenir de bien meilleurs résultats, mais cela prendrait alors beaucoup trop de temps pour être véritablement envisageable.
+Cette première implémentation intuitive permet ainsi d'obtenir des résultats très satisfaisants, allant jusqu'à 90\% de réussite sur le problème de	 MNIST. De plus, elle met en évidence le fonctionnement d'un réseau de neurones. Cependant, on remarque que les calculs ne sont pas du tout optimisés. Cela explique que le temps d'exécution devient rapidement très long. Dans l'exemple de l'application à l'ensemble de données MNIST, entraîner plusieurs fois le réseau sur l'ensemble d'apprentissage permettrait d'obtenir de bien meilleurs résultats, mais cela prendrait alors beaucoup trop de temps pour être véritablement envisageable.
 Afin d'améliorer le temps de calcul et d'optimiser l'algorithme, nous nous sommes intéressés à une nouvelle approche des réseaux neuronaux basée sur les Computational Graphs, ou Graphes de calculs.
 
-\include{chapitre3}
-
 \chapter{Études des paramètres}
+
+\include{chapitre3}
 
 \section{Approche du problème}
 
@@ -411,7 +401,7 @@ La sortie de la cellule est obtenue à partir du cell state auquel on applique u
 
 En pratique, on n'est pas sûr qu'une cellule LSTM suive effectivement le principe décrit précédemment. Celui-ci est plutôt une illustration afin de comprendre de manière générale le fonctionnement des LSTM.
 
-La structure d'une cellule LSTM n'est pas figée. En effet, il est possible de l'adapter en ajoutant, enlevant certains éléments, gates. Par exemple, on peut ajouter une forget gate composée d'une couche de sigmoides au début de la cellule. On multiplie la sortie de cette forget gate afin de garder, supprimer, réduire certaines composantes du cell state. 
+La structure d'une cellule LSTM n'est pas non figée. En effet, il est possible de l'adapter en ajoutant, enlevant certains éléments, gates. Par exemple, on peut ajouter une forget gate composée d'une couche de sigmoides au début de la cellule. On multiplie la sortie de cette forget gate afin de garder, supprimer, réduire certaines composantes du cell state. 
 
 \break
 
@@ -492,9 +482,25 @@ On rétropropage le gradient dans tout le graphe déplié avec les formules pré
 W = W - \eta \sum{\frac{\partial J}{\partial W}}
 \end{equation} 
 
-\section{Implémentation}
+\section{Première Implémentation}
+
+Une première implémentation des LSTM a été réalisé en conservant le plus possible le concept de cellule indépendante. Ainsi une classe Weights contient tous les poids de la cellule et la classe Lstmcell se contentera elle de calculer la propagation et la rétropropagation (Voir Figure 4.4 de la cellule LSTM pour situer les poids).
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{images/UML_LSTM_Implementation_1.png}
+\caption{Diagramme UML de la cellule LSTM}
+\label{cellule LSTM UML 1}
+\end{center}
+\end{figure}
+
+\section{Implémentation avec des nœuds}
+
+Cette seconde implémentation a pour but de réutiliser les composantes Nodes (utilisées dans les réseaux simples) afin d'optimiser les calculs et de faciliter la mise en pipeline de plusieurs cellules LSTM les unes derrières les autres.
+
 \section{Résultats}
 \section{Autres applications}
+\
 
 \include{chapitre9}
 
