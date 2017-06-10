@@ -6,10 +6,13 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
+\usepackage{dsfont}
+\usepackage{caption}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{array}
 \usepackage{pgf,tikz}
+\usepackage{subfig}
 \usetikzlibrary{arrows}
 \usepackage{pgf,tikz}
 
@@ -37,7 +40,7 @@
 
 \tableofcontents
 
-\include{chapitre1.tex}
+\include{chapitre1}
 
 \chapter{Une première implémentation}
 
@@ -148,8 +151,6 @@ Cette première implémentation intuitive permet ainsi d'obtenir des résultats 
 Afin d'améliorer le temps de calcul et d'optimiser l'algorithme, nous nous sommes intéressés à une nouvelle approche des réseaux neuronaux basée sur les Computational Graphs, ou Graphes de calculs.
 
 \chapter{Études des paramètres}
-
-\include{chapitre3}
 
 \section{Approche du problème}
 
@@ -267,6 +268,8 @@ Nous pouvons alors distinguer trois cas reflétant les principaux comportements 
 \item Pour un taux d'apprentissage de 0.1, il semble apparaître un bon compromis entre stabilité et vitesse de la convergence. C'est cette valeur qui en général sera choisie pour les tests, bien que d'autres soient satisfaisants (0.8 ou 1 par exemple).
 
 \end{itemize}
+
+\include{chapitre3}
 
 \chapter{Réseaux de neurones récurrents}
 \section{Motivation}

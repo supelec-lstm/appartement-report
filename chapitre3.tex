@@ -78,7 +78,7 @@ Nous avons ainsi modéliser nos réseaux de manière plus efficace. Il reste cep
 
 \section{Dérivation automatique}
 
-Afin de réaliser cela, nos n\oe{}uds représentant des opérations mathématiques ne seront pas seulement responsable de calculer une sortie mais aussi de propager le gradient. En effet prenons un n\oe{}ud représent une opération mathématique $f$ à $m$ entrées $x_1, ..., x_m$ et à $n$ sorties $y_1, ..., y_m$. La règle de la chaine, nous permet d'exprimer la dérivée du coût par rapport aux entrées en fonction du coût par rapport aux sorties du n\oe{}ud. En effet, on a :
+Afin de réaliser cela, nos n\oe{}uds représentant des opérations mathématiques ne seront pas seulement responsable de calculer une sortie mais aussi de propager le gradient. En effet prenons un n\oe{}ud représent une opération mathématique $f$ à $m$ entrées $x_1, ..., x_m$ et à $n$ sorties $y_1, ..., y_n$. La règle de la chaine, nous permet d'exprimer la dérivée du coût par rapport aux entrées en fonction du coût par rapport aux sorties du n\oe{}ud. En effet, on a :
 \begin{equation}
 \forall i \in \{1, ...,  m\}, \frac{\partial E}{\partial x_i} = \sum_{j=1}^{n}{\frac{\partial y_j}{\partial x_i}\frac{\partial E}{\partial y_j}} = \sum_{j=1}^{n}{\frac{\partial f_j}{\partial x_i}(x)\frac{\partial E}{\partial y_j}}
 \label{retropropagation_graphe}
@@ -150,13 +150,21 @@ Dans cette sous-section, nous allons décrire les symboles ainsi que les formule
 Nous commençons d'abord par décrire les n\oe{}uds à une entrée et une sortie :
 
 \begin{center}
-\begin{tabular}{|m{4cm}|m{3.cm}|m{3.cm}|}
+\begin{tabular}{|m{3.5cm}|m{2.7cm}|m{4.5cm}|}
 \hline
 \begin{center}Symbole\end{center} & \begin{center}Formule de propagation\end{center} & \begin{center}Formule de rétropropagation\end{center} \\
 \hline
 \begin{center}\input{images/chapter3/nodes/node_sigmoid.tex}\end{center} & \begin{center}$\sigma(x) = \frac{1}{1 + \exp(-x)}$\end{center} & \begin{center}$\frac{\partial E}{\partial y} \odot y \odot (1 - y)$\end{center} \\
 \hline
 \begin{center}\input{images/chapter3/nodes/node_tanh.tex}\end{center} & \begin{center}$\tanh(x)$\end{center} & \begin{center}$\frac{\partial E}{\partial y} \odot (1 - y \odot y)$\end{center} \\ 
+\hline
+\begin{center}\input{images/chapter3/nodes/node_relu.tex}\end{center} & \begin{center}$ReLU(x)$\end{center} & \begin{center}$\frac{\partial E}{\partial y} \odot (\mathds{1}_{x_{i,j} \geq 0})_{i,j}$\end{center} \\ 
+\hline
+\begin{center}\input{images/chapter3/nodes/node_softmax.tex}\end{center} & \begin{center}$softmax(x)$\end{center} & \begin{center}$\left(\sum_{k = 1}^{n}{y_{i,j}(\delta_{j,k} - y_{i,k})\frac{\partial E}{\partial y_{i, k}}}\right)_{i,j}$\end{center} \\ 
+\hline
+\begin{center}\input{images/chapter3/nodes/node_norm2.tex}\end{center} & \begin{center}$||x||_2^2$\end{center} & \begin{center}$2\frac{\partial E}{\partial y}x$\end{center} \\ 
+\hline
+\begin{center}\input{images/chapter3/nodes/node_add_bias.tex}\end{center} & \begin{center}$1|x = \begin{pmatrix}1 & x\end{pmatrix}$\end{center} & \begin{center}$(\frac{\partial E}{\partial y}_{i, j})_{i \in \{2, ..., m+1\}, j \in \{1, ..., n\}}$\end{center} \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -175,6 +183,12 @@ Puis ceux à deux entrées et une sortie :
 \begin{center}\input{images/chapter3/nodes/node_multiplication.tex}\end{center} & \begin{center}$x_1 \times x_2$\end{center} & \begin{center}$(\frac{\partial E}{\partial y}x_2^T, x_1^T\frac{\partial E}{\partial y})$\end{center} \\
 \hline
 \begin{center}\input{images/chapter3/nodes/node_ew_multiplication.tex}\end{center} & \begin{center}$x_1 \odot x_2$\end{center} & \begin{center}$(\frac{\partial E}{\partial y} \odot x_2, \frac{\partial E}{\partial y} \odot x_1)$\end{center} \\
+\hline
+\begin{center}\input{images/chapter3/nodes/node_concatenation.tex}\end{center} & \begin{center}$x_1|x_2 = \begin{pmatrix}x_1 & x_2\end{pmatrix}$\end{center} & \begin{center}$ $\end{center} \\
+\hline
+\begin{center}\input{images/chapter3/nodes/node_sigmoid_cross_entropy.tex}\end{center} & \begin{center}$sigmoidCE(x_1, x_2)$\end{center} & \begin{center}$ $\end{center} \\
+\hline
+\begin{center}\input{images/chapter3/nodes/node_softmax_cross_entropy.tex}\end{center} & \begin{center}$softmaxCE(x_1, x_2)$\end{center} & \begin{center}$ $\end{center} \\
 \hline
 \end{tabular}
 \end{center}
@@ -305,6 +319,22 @@ $$
 \frac{\partial E}{\partial x} = \frac{\partial E}{\partial y} \odot (1 - y \odot y)
 $$
 \end{proof}
+
+\begin{proposition}
+Si $y = ReLU(x)$ alors $\frac{\partial E}{\partial x} = \frac{\partial E}{\partial y} \odot (\mathds{1}_{x_{i,j} \geq 0})_{i,j}$.
+\end{proposition}
+
+\begin{proposition}
+Si $y = softmax(x)$ alors $\frac{\partial E}{\partial x} = \left(\sum_{k = 1}^{n}{y_{i,j}(\delta_{j,k} - y_{i,k})\frac{\partial E}{\partial y_{i, k}}}\right)_{i,j}$.
+\end{proposition}
+
+\begin{proposition}
+Si $y = ||x||_2^2$ alors $\frac{\partial E}{\partial x} = 2\frac{\partial E}{\partial y}x$.
+\end{proposition}
+
+\begin{proposition}
+Si $y = 1|x = \begin{pmatrix}1 & x\end{pmatrix}$ alors $\frac{\partial E}{\partial x} = (\frac{\partial E}{\partial y}_{i, j})_{i \in \{2, ..., m+1\}, j \in \{1, ..., n\}}$.
+\end{proposition}
 
 \begin{proposition}
 Si $y = x_1 + x_2$ alors $\frac{\partial E}{\partial x_1} = \frac{\partial E}{\partial x_2} = \frac{\partial E}{\partial y}$.
