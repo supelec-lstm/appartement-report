@@ -78,7 +78,7 @@ Nous avons ainsi modéliser nos réseaux de manière plus efficace. Il reste cep
 
 \section{Dérivation automatique}
 
-Afin de réaliser cela, nos n\oe{}uds représentant des opérations mathématiques ne seront pas seulement responsable de calculer une sortie mais aussi de propager le gradient. En effet prenons un n\oe{}ud représent une opération mathématique $f$ à $m$ entrées $x_1, ..., x_m$ et à $n$ sorties $y_1, ..., y_m$. La règle de la chaine, nous permet d'exprimer la dérivée du coût par rapport aux entrées en fonction du coût par rapport aux sorties du n\oe{}ud. En effet, on a :
+Afin de réaliser cela, nos n\oe{}uds représentant des opérations mathématiques ne seront pas seulement responsable de calculer une sortie mais aussi de propager le gradient. En effet prenons un n\oe{}ud représent une opération mathématique $f$ à $m$ entrées $x_1, ..., x_m$ et à $n$ sorties $y_1, ..., y_n$. La règle de la chaine, nous permet d'exprimer la dérivée du coût par rapport aux entrées en fonction du coût par rapport aux sorties du n\oe{}ud. En effet, on a :
 \begin{equation}
 \forall i \in \{1, ...,  m\}, \frac{\partial E}{\partial x_i} = \sum_{j=1}^{n}{\frac{\partial y_j}{\partial x_i}\frac{\partial E}{\partial y_j}} = \sum_{j=1}^{n}{\frac{\partial f_j}{\partial x_i}(x)\frac{\partial E}{\partial y_j}}
 \label{retropropagation_graphe}
@@ -140,17 +140,32 @@ Un n\oe{}ud aura deux missions : calculer sa sortie et rétropropager le gradien
 \label{node}
 \end{figure}
 
-Lors de la propagation, un n\oe{}ud demande ses entrées à ses parents puis calcule sa sortie et la mémoïse. De façon analogue, lors de la rétropropagation, un n\oe{}ud demande à chacun de ses enfants le gradient par rapport à la sortie qu'ils utilisent puis s'en sert pour calculer le gradient par rapport à ses entrées et mémoïse
-.
+Un n\oe{}ud a deux méthodes principales :
+\begin{itemize}
+\item \texttt{get\_output} : utilisée lors la propagation, le n\oe{}ud demande ses entrées à ses parents puis calcule sa sortie et la mémoïse ;
+\item \texttt{get\_gradient} : utilisée lors de la rétropropagation, n\oe{}ud demande à chacun de ses enfants le gradient par rapport à la sortie qu'ils utilisent puis s'en sert pour calculer le gradient par rapport à ses entrées et la mémoïse.
+\end{itemize}
+
+\subsection{Les variables}
+
+Les n\oe{}uds variables sont des n\oe{}uds auxquels il est possible d'assigner une valeur via la méthode \texttt{set\_value}. Il renvoie ensuite cette valeur lorsqu'un de ses enfants lui demande sa sortie.
+
+Ils sont utilisés dans deux cas principaux. Le premier est évidemment les entrées du graphe. Le deuxième cas est plus subtile. Nous avons choisi comme pour la première implémentation avec des neurones d'inclure la fonction de coût dans nos graphe de calculs. Or cette fonction de coût prend comme argument la sortie du réseau $\hat{y}$, mais aussi la sortie attendue $y$. On utilise donc des n\oe{}uds variables pour spécifier la sortie attendue.
+
+\subsection{Les poids}
+
+Un n\oe{}ud poids est un n\oe{}ud auquel est associé une matrice qui réprésente des poids. Le n\oe{}ud poids renvoie cette matrice lorsqu'un de ses enfants lui demande sa sortie.
+
+En plus de sa matrice de poids, le n\oe{}ud poids possède un accumulateur qui sert à accumuler le gradient sur plusieurs batches. Ainsi à chaque fois que le n\oe{}uds poids calcule la dérivée du coût par rapport à ses poids, il ajoute cette valeur à son accumulateur.
 
 \subsection{Les opérations mathématiques}
 
-Dans cette sous-section, nous allons décrire les symboles ainsi que les formules des n\oe{}uds que nous avons implémentés. \label{nodes}
+Dans cette sous-section, nous allons décrire les symboles ainsi que les formules de propagation et de rétropropagation des n\oe{}uds opérations que nous avons implémentés. \label{nodes}
 
 Nous commençons d'abord par décrire les n\oe{}uds à une entrée et une sortie :
 
 \begin{center}
-\begin{tabular}{|m{4cm}|m{3.cm}|m{3.cm}|}
+\begin{tabular}{|m{3.5cm}|m{2.9cm}|m{5.2cm}|}
 \hline
 \begin{center}Symbole\end{center} & \begin{center}Formule de propagation\end{center} & \begin{center}Formule de rétropropagation\end{center} \\
 \hline
@@ -158,13 +173,21 @@ Nous commençons d'abord par décrire les n\oe{}uds à une entrée et une sortie
 \hline
 \begin{center}\input{images/chapter3/nodes/node_tanh.tex}\end{center} & \begin{center}$\tanh(x)$\end{center} & \begin{center}$\frac{\partial E}{\partial y} \odot (1 - y \odot y)$\end{center} \\ 
 \hline
+\begin{center}\input{images/chapter3/nodes/node_relu.tex}\end{center} & \begin{center}$ReLU(x)$\end{center} & \begin{center}$\frac{\partial E}{\partial y} \odot (\mathds{1}_{x_{i,j} \geq 0})_{i,j}$\end{center} \\ 
+\hline
+\begin{center}\input{images/chapter3/nodes/node_softmax.tex}\end{center} & \begin{center}$softmax(x)$\end{center} & \begin{center}$\left(\sum_{k = 1}^{n}{y_{i,j}(\delta_{k,j} - y_{i,k})\frac{\partial E}{\partial y_{i, k}}}\right)_{i,j}$\end{center} \\ 
+\hline
+\begin{center}\input{images/chapter3/nodes/node_norm2.tex}\end{center} & \begin{center}$||x||_2^2$\end{center} & \begin{center}$2\frac{\partial E}{\partial y}x$\end{center} \\ 
+\hline
+\begin{center}\input{images/chapter3/nodes/node_add_bias.tex}\end{center} & \begin{center}$1|x = \begin{pmatrix}1 & x\end{pmatrix}$\end{center} & \begin{center}$(\frac{\partial E}{\partial y}_{i, j})_{i \in \{1, ..., m\}, j \in \{2, ..., n+1\}}$\end{center} \\ 
+\hline
 \end{tabular}
 \end{center}
 
 Puis ceux à deux entrées et une sortie :
 
 \begin{center}
-\begin{tabular}{|m{4cm}|m{3.cm}|m{3.cm}|}
+\begin{tabular}{|m{3.5cm}|m{2.9cm}|m{5.2cm}|}
 \hline
 \begin{center}Symbole\end{center} & \begin{center}Formule de propagation\end{center} & \begin{center}Formule de rétropropagation\end{center} \\
 \hline
@@ -176,6 +199,12 @@ Puis ceux à deux entrées et une sortie :
 \hline
 \begin{center}\input{images/chapter3/nodes/node_ew_multiplication.tex}\end{center} & \begin{center}$x_1 \odot x_2$\end{center} & \begin{center}$(\frac{\partial E}{\partial y} \odot x_2, \frac{\partial E}{\partial y} \odot x_1)$\end{center} \\
 \hline
+\begin{center}\input{images/chapter3/nodes/node_concatenation.tex}\end{center} & \begin{center}$x_1|x_2 = \begin{pmatrix}x_1 & x_2\end{pmatrix}$\end{center} & \begin{center}$\begin{array}{l}((\frac{\partial E}{\partial y}_{i, j})_{i \in \{1, ..., m\}, j \in \{1, ..., n_1\}}, \\ (\frac{\partial E}{\partial y}_{i, j})_{i \in \{1, ..., m\}, j \in \{n_1+1, ..., n_1+n_2\}})\end{array} $\end{center} \\
+\hline
+\begin{center}\input{images/chapter3/nodes/node_sigmoid_cross_entropy.tex}\end{center} & \begin{center}$sigmoidCE(x_1, x_2)$\end{center} & \begin{center}$\begin{array}{l}(-\frac{\partial E}{\partial y} \odot \left(\frac{x_2}{1-x_2}\right), \\ -\frac{\partial E}{\partial y} \odot \left(\frac{x_1}{x_2} - \frac{1-x_1}{1-x_2}\right))\end{array}$\end{center} \\
+\hline
+\begin{center}\input{images/chapter3/nodes/node_softmax_cross_entropy.tex}\end{center} & \begin{center}$softmaxCE(x_1, x_2)$\end{center} & \begin{center}$(-\frac{\partial E}{\partial y} \odot log(x_2), -\frac{\partial E}{\partial y} \odot \left(\frac{x_1}{x_2}\right))$\end{center} \\
+\hline
 \end{tabular}
 \end{center}
 
@@ -185,7 +214,7 @@ Afin d'avoir des performances correctes en utilistant Python, nous avions comme 
 
 Or afin d'utiliser la descente du gradient, il faut calculer la dérivée du coût qui est scalaire par rapport aux poids qui sont stockés dans une matrice. Le moyen le plus efficace  de calculer cette quantité est d'obtenir une formule faisant intervenir directement des matrices.
 
-Au début du projet, nous n'étions pas très à l'aise avec les dérivées matricielles. De plus, nous n'avons pas trouvé dans la littérature de document expliquant clairement le concept et donnant un formulaire utile pour les réseaux de neurones. Dans cette sous-section nous allons donc rappeler le concept et les notations. Puis nous démontrerons les formules énoncées ci-dessus pour expliciter la méthode permettant de d'obtenir de telles formules.
+Au début du projet, nous n'étions pas très à l'aise avec les dérivées matricielles. De plus, nous n'avons pas trouvé dans la littérature de document expliquant clairement le concept et donnant un formulaire utile pour les réseaux de neurones. Dans cette sous-section nous allons donc rappeler le concept et les notations. Puis nous démontrerons les formules énoncées ci-dessus pour expliciter la méthode permettant d'obtenir de telles formules.
 
 \begin{definition}[Dérivée tensorielle]
 Soit une fonction $f : \mathbb{R}^{m_1 \times ... \times m_p} \rightarrow \mathbb{R}^{n_1 \times ... \times n_q}$. Nous appelerons dérivée tensorielle de f en $x$ notée $\frac{\partial f}{\partial x}(x)$, le tenseur $(\frac{\partial f_{j_1, ..., j_q}}{\partial x_{i_1, ..., i_p}}(x))_{i_1, ..., i_p, j_1, ..., j_q} \in  \mathbb{R}^{m_1 \times ... \times m_p \times n_1 \times ... \times n_q}$ 
@@ -307,6 +336,89 @@ $$
 \end{proof}
 
 \begin{proposition}
+Si $y = ReLU(x)$ alors $\frac{\partial E}{\partial x} = \frac{\partial E}{\partial y} \odot (\mathds{1}_{x_{i,j} \geq 0})_{i,j}$.
+\end{proposition}
+
+\begin{proof}
+$$
+\forall i \in \{1, ..., m\}, j \in \{1, ..., n\}, \frac{\partial E}{\partial x_{i, j}} = \frac{\partial E}{\partial y_{i, j}}\frac{\partial y_{i, j}}{\partial x_{i, j}} = \frac{\partial E}{\partial y_{i, j}}\mathds{1}_{x_{i,j} \geq 0}
+$$
+On reconnait alors une multiplication terme à terme d'où le résulat annoncé.
+\end{proof}
+
+\begin{proposition}
+Si $y = softmax(x)$ alors $\frac{\partial E}{\partial x} = \left(\sum_{k = 1}^{n}{y_{i,j}(\delta_{k,j} - y_{i,k})\frac{\partial E}{\partial y_{i, k}}}\right)_{i,j}$.
+\label{derivative_softmax}
+\end{proposition}
+
+\begin{lemma}
+Si $y = softmax(x) = \left(\frac{e^{x_j}}{\sum_{k = 1}^{n}{e^{x_k}}}\right)_j$ alors :
+$$
+\forall i \in \{1, ..., n\}, \forall j \in \{1, ..., n\}, \frac{\partial y_i}{\partial x_j} = y_i(\delta_{i, j} - y_j)
+$$
+\end{lemma}
+
+\begin{proof}
+Pour tout $i, j \in \{1, ..., n\}$ :
+$$
+\frac{\partial y_i}{\partial x_j} = 
+\left\{
+\begin{array}{rl}
+	\frac{e^{x_i}\sum_{k = 1}^{n}{e^{x_k}} - (e^{x_i})^2}{(\sum_{k = 1}^{n}{e^{x_k}})^2} & \text{si} i = j \\
+	\frac{-e^{x_i}e^{x_j}}{(\sum_{k = 1}^{n}{e^{x_k}})^2} & \text{sinon}
+\end{array}
+\right.
+=
+\left\{
+\begin{array}{rl}
+	y_i(1 - y_i) & \text{si} i = j \\
+	-y_iy_j & \text{sinon}
+\end{array}
+\right.
+=
+y_i(\delta_{i, j} - y_j)
+$$
+\end{proof}
+
+Utilisons ce lemme pour démontrer la proposition \ref{derivative_softmax} :
+
+\begin{proof}
+$$
+\forall i \in \{1, ..., m\}, j \in \{1, ..., n\}, \frac{\partial E}{\partial x_{i, j}} = \sum_{k = 1}^{n}{\frac{\partial E}{\partial y_{i, k}}\frac{\partial y_{i, k}}{\partial x_{i, j}}} = \sum_{k = 1}^{n}{\frac{\partial E}{\partial y_{i, k}}y_{i,k}(\delta_{k, j} - y_{i,j})}
+$$
+\end{proof}
+
+\begin{proposition}
+Si $y = ||x||_2^2$ alors $\frac{\partial E}{\partial x} = 2\frac{\partial E}{\partial y}x$.
+\end{proposition}
+
+\begin{proof}
+$$
+y = ||x||_2^2 = \sum_{i,j}{x_{i,j}^2}
+$$
+d'où
+$$
+\forall i \in \{1, ..., m\}, j \in \{1, ..., n\}, \frac{\partial E}{\partial x_{i, j}} = \frac{\partial E}{\partial y}\frac{\partial y}{\partial x_{i, j}} = 2\frac{\partial E}{\partial y}x_{i,j}
+$$
+et donc :
+$$
+\frac{\partial E}{\partial x} = 2\frac{\partial E}{\partial y}x
+$$
+\end{proof}
+
+\begin{proposition}
+Si $y = 1|x = \begin{pmatrix}1 & x\end{pmatrix}$ alors $\frac{\partial E}{\partial x} = (\frac{\partial E}{\partial y}_{i, j})_{i \in \{1, ..., m\}, j \in \{2, ..., n+1\}}$.
+\end{proposition}
+
+\begin{proof}
+$$
+\forall i \in \{1, ..., m\}, j \in \{1, ..., n\}, \frac{\partial E}{\partial x_{i, j}} = \frac{\partial E}{\partial y_{i, j+1}}\frac{\partial y_{i, j+1}}{\partial x_{i, j}} = \frac{\partial E}{\partial y_{i, j+1}}
+$$
+\end{proof}
+
+Démontrons maintenant les formules de rétropropagation pour les n\oe{}uds à deux entrées.
+
+\begin{proposition}
 Si $y = x_1 + x_2$ alors $\frac{\partial E}{\partial x_1} = \frac{\partial E}{\partial x_2} = \frac{\partial E}{\partial y}$.
 \end{proposition}
 
@@ -347,7 +459,7 @@ Procédons de même pour $\frac{\partial E}{\partial x_2}$. Soit $j \in \{1, ...
 $$
 \frac{\partial E}{\partial x_{2_{j, k}}} = \sum_{i = 1}^{m}{\frac{\partial E}{\partial y_{i, k}}\frac{\partial y_{i, k}}{\partial x_{2_{j, k}}}} = \sum_{i = 1}^{m}{\frac{\partial E}{\partial y_{i, k}}x_{1_{i, j}}} 
 $$ 
-On reconnait la l'expression du produit matriciel entre $x_1^T$ et $\frac{\partial E}{\partial y}$, d'où :
+On reconnait là l'expression du produit matriciel entre $x_1^T$ et $\frac{\partial E}{\partial y}$, d'où :
 $$
 \frac{\partial E}{\partial x_2} = x_1^T \frac{\partial E}{\partial y}
 $$
@@ -367,13 +479,45 @@ On reconnait la formule du produit terme à terme entre $\frac{\partial E}{\part
 On procède de même pour $\frac{\partial E}{\partial x_2}$.
 \end{proof}
 
+\begin{proposition}
+Si $y = x_1 | x_2$ alors $\frac{\partial E}{\partial x_1} = (\frac{\partial E}{\partial y}_{i, j})_{i \in \{1, ..., m\}, j \in \{1, ..., n_1\}}$ et $(\frac{\partial E}{\partial y}_{i, j})_{i \in \{1, ..., m\}, j \in \{n_1+1, ..., n_1+n_2\}}$.
+\end{proposition}
+
+\begin{proof}
+$$
+\forall i \in \{1, ..., m\}, j \in \{1, ..., n_1\}, \frac{\partial E}{\partial x_{1_{i, j}}} = \frac{\partial E}{\partial y_{i, j}}\frac{\partial y_{i, j}}{\partial x_{1_{i, j}}} = \frac{\partial E}{\partial y_{i, j}}
+$$
+$$
+\forall i \in \{1, ..., m\}, j \in \{1, ..., n_2\}, \frac{\partial E}{\partial x_{2_{i, j}}} = \frac{\partial E}{\partial y_{i, n_1+j}}\frac{\partial y_{i, n_1+j}}{\partial x_{2_{i, j}}} = \frac{\partial E}{\partial y_{i, n_1+j}}
+$$
+\end{proof}
+
+\begin{proposition}
+Si $y = sigmoidCE(x_1, x_2)$ alors $\frac{\partial E}{\partial x_1} = -\frac{\partial E}{\partial y} \odot \left(\frac{x_2}{1-x_2}\right)$ et $\frac{\partial E}{\partial x_2} = -\frac{\partial E}{\partial y} \odot \left(\frac{x_1}{x_2} - \frac{1-x_1}{1-x_2}\right)$.
+\end{proposition}
+
+\begin{proposition}
+Si $y = x_1 \odot x_2$ alors $\frac{\partial E}{\partial x_1} = -\frac{\partial E}{\partial y} \odot log(x_2)$ et $\frac{\partial E}{\partial x_2} = -\frac{\partial E}{\partial y} \odot \left(\frac{x_1}{x_2}\right)$.
+\end{proposition}
+
 \section{La classe Graph}
 
+La classe graphe est une classe utilitaire. Toute la logique de la propagation et de la rétroprogation est contenue dans les n\oe{}uds. Elle sert à stocker les n\oe{}uds créés auparavant et leur fonction : entrée, poids, coût ou sortie. Il est ensuite possible d'utiliser les méthodes suivantes afin d'intéragir facilement avec les n\oe{}uds :
+\begin{itemize}
+\item \texttt{propagate} : met à jour les entrées des n\oe{}uds variables et calcule la sortie du graphe ;
+\item \texttt{backpropagate} : calcule la dérivée du coût par rapport à chaque poids.
+\end{itemize} 
 
 \section{Diagramme UML}
 
 Afin de résumer, les propos de cette partie, nous présentons le diagramme de classe de notre implémentation en Python.
 
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.3]{images/chapter3/pychain_uml.png}
+\caption{Diagramme UML de \texttt{pychain}}
+\end{center}
+\end{figure}
 
 \section{Conclusion}
 
@@ -381,4 +525,6 @@ Nous avons décrit les graphes de calculs, donnés les algorithmes permenttant d
 
 Dans cette partie, nous avons développé un outil bien plus puissant que les réseaux de neurones. En effet, nous avons donné un cadre et une méthode permettant d'optimiser théoriquement n'importe quelle fonction pour peu que nous puissions la décomposer en opérations dont nous sachons calculer la dérivée. Cette grande puissance théorique vient de plus avec une grande facilité d'implémentation et d'utilisation.
 
-Finalement, nous verrons dans la partie suivante que notre implémentation graphes de calculs est bien plus performante que notre précédente modélisation en neurones. En outre, la modularité des graphes de calculs, nous permettra d'exécuter de nombreux tests sur l'architecture et les paramètres des réseaux de neurones, ce que nous détaillerons dans la partie suivante.
+Nous verrons dans la partie suivante que notre implémentation graphes de calculs est bien plus performante que notre précédente modélisation en neurones. En outre, la modularité des graphes de calculs, nous permettra d'exécuter de nombreux tests sur l'architecture et les paramètres des réseaux de neurones, ce que nous détaillerons dans la partie suivante.
+
+Finalement, comme nous le verrons, cette implémentation restera valide pour la modélisation des réseaux de neurones récurrents.
