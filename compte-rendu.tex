@@ -182,7 +182,13 @@ C'est donc ainsi que nous avons pu déterminer des éléments permettant de comp
 \section{\'Etude du XOR}
 
 Dans un premier temps, nous avons effectués plusieurs tests sur un exemple très simple : XOR.
-Quelques résultats ont déjà été présentés en partie \ref{resultat_premiere_implementation}. Ils vont être rapelés et détaillés dans cette partie.
+Quelques résultats ont déjà été présentés en partie \ref{resultat_premiere_implementation}. Ils vont être rappelés et détaillés ici.\\
+
+Nous avons principalement étudié l'influence de l'architecture du réseau sur la rapidité de l'apprentissage. \\
+
+La figure \ref{xor_architecture_tanh} présente la précision obtenue pour des structures d'une seule couche cachée avec un nombre variable de neurones de fonction d'activation tanh. Moins le réseau possède de neurones sur sa couche cachée, plus il a besoin d'apprendre sur un nombre important d'itérations. Cependant, avec seulement deux neurones sur la couche cachée, l'apprentissage se fait déjà relativement rapidement et le gain obtenu en ajoutant des états cachés n'est pas vraiment significatif puisqu'il ajoute un coût temporel de calcul.\\
+
+Cette même étude réalisée dans les mêmes conditions en remplaçant simplement la fonction d'activation tangente hyperbolique par une ReLu donne des résultats complètement différents visible en figure \ref{xor_architecture_relu}. Ici, la taille de la couche cachée prend beaucoup plus d'importance puisqu'elle devient le paramètre principal pour obtenir une précision parfaite rapidement. En effet, même si augmenter le nombre d'itérations permet à des architectures avec peu d'états cachés permet d'améliorer la précision du réseau, cette amélioration est très lente. \`A l'inverse le réseau apprend presque instantanément lorsque l'on augmente le nombre d'états cachés.\\
 
 \begin{figure}[!h]
 \begin{center}
@@ -200,28 +206,38 @@ Quelques résultats ont déjà été présentés en partie \ref{resultat_premier
 \end{center}
 \end{figure}
 
-\begin{figure}
+L'exemple de ces deux situations représente clairement les problèmes rencontrés pour étudier les influences des paramètres d'un réseau de neurone. En effet, l'influence de la taille de la couche cachée sur notre réseau n'est plus du tout la même selon le choix de la fonction d'activation appliquée à chaque neurone. Ainsi, il n'est souvent pas possible de définir une règle générale à appliquer concernant un paramètre pris indépendamment des autres.
+
+\section{\'Etude de MNIST}
+
+\subsection{Introduction}
+Dans cette partie, mis à part les paramètres explicitement précisés pour un exemple, toutes les mesures qui vont être présentées furent réalisées en utilisant les paramètres suivants :
+\begin{itemize}
+\item Pas de couche cachée, les neurones d'entrée sont directement reliés aux sorties
+\item Les entrées sont centrées et normalisées : chaque pixel est alors représenté par une valeur de [-1;1]
+\item Les poids sont initialisés aléatoirement avec une fonction Gaussienne centrée de variance 0,1
+\item On utilise une sigmoïde en sortie
+\item On utilise l'erreur quadratique pour la fonction de coût
+\item Les exemples sont traités pas batch de 128
+\item On fixe un learning rate de 0,1
+\end{itemize}
+
+\subsection{Architecture du réseau}
+
+Le nombre de couches cachées d'un réseau de neurones ainsi que leur composition constitue l'architecture de ce réseau.
+
+De façon intuitive, il parait évident qu'une plus grande architecture de réseau, possédant plus de neurones par couches cachées ou plus de couches cachées apprendra avec plus de précision l'ensemble de données. Cependant cela a un coût en temps et rendra l'apprentissage beaucoup plus lent.
+Ainsi, alors qu'un apprentissage effectué sans couche cachée sur 30 passages du set de données mnist aura une précision d'environ 93\%, un réseau composé d'une couche cachée de 400 neurones ayant pour fonction d'activation tangente hyperbolique pourra avoir sur ce même ensemble presque 98\% de précision. Le résultat de cette seconde situation est visible en figure \ref{mnist100}. On y remarque que l'ensemble de données est très rapidement complètement appris.
+\begin{figure}[!h]
 \begin{center}
-\begin{tabular}{cc}
-\includegraphics[scale=0.5]{images/xor_tanh_centre.png} & \includegraphics[scale=0.5]{images/xor_relu_centre.png} \\
-\includegraphics[scale=0.5]{images/cout_xor_tanh_centre.png} & \includegraphics[scale=0.5]{images/cout_xor_relu_centre.png}
-\end{tabular}
-\caption{Résultat après centrage des entrées pour tanh (à gauche) et pour relu (à droite)} 
-\label{differentes_fonctions_activation}
+\includegraphics[scale=0.5]{images/mnist100.png}
+\caption{Précision pour un réseau avec une couche cachée de 400 neurones}
+\label{mnist100}
 \end{center}
 \end{figure}
 
-
-\section{\'Etude de MNIST}
-\subsection{Architecture du réseau}
-Le nombre de couches cachées d'un réseau de neurone ainsi que leur composition constitue l'architecture de ce réseau.
-
-
-\subsection{Prétraitement des données}
-
-
 \subsection{Initialisation des poids}
-Avant le lancement de l'algorithme sur un réseau de neurone, il est nécessaire d'initialiser les poids.	L'usage le plus courant est de les initialiser aléatoirement. Cependant, le choix de la distribution aléatoire n'est pas forcément évident. En effet, on peut choisir d'utiliser une distribution uniforme, une distribution gaussienne ou tout autre type de distribution aléatoire avec des paramètres variables.
+Avant le lancement de l'algorithme sur un réseau de neurone, il est nécessaire d'initialiser les poids. L'usage le plus courant est de les initialiser aléatoirement. Cependant, le choix de la distribution aléatoire n'est pas forcément évident. En effet, on peut choisir d'utiliser une distribution uniforme, une distribution gaussienne ou tout autre type de distribution aléatoire avec des paramètres variables.
 
 Nous avons donc testé trois types de fonction d'initialisation des poids : une répartition uniforme, une répartition uniforme centrée en 0  et une répartition gaussienne centrée en 0.
 Si les initialisations centrées en 0 permettent une convergence un petit peu plus rapide, ces trois initialisations produisent des résultats similaires. Cependant, l'amplitude des poids change beaucoup les résultats quelle que soit la fonction d'initialisation. En effet, les poids convergeant lors de l'apprentissage vers de petites valeurs, une initialisation avec de petites amplitudes va permettre une convergence plus rapide.
@@ -247,13 +263,43 @@ On peut ainsi bien observer que dans le cas du facteur multiplicatif de 10, la c
 
 
 
-\subsection{Choix des fonctions d'activations}
+\subsection{Choix des fonctions d'activations et de coût}
 
+Le tableau \ref{influence_fonction_cout} présente quelques résultats sur la précision obtenu par le réseau selon les fonctions de coût et les fonctions en sortie utilisées.
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.6]{images/influence_fonction_cout.png}
+\caption{Influence de la fonction de coût sur la précision obtenue par le réseau}
+\label{influence_fonction_cout}
+\end{center}
+\end{figure}
+Le choix de la fonction de coût ne semble avoir qu'un impact très mineur sur les résultats obtenus par le réseau. L'erreur quadratique présente des performances légèrement supérieures à l'entropie croisée pour ce problème mais cette différence est très faible.
 
-\subsection{Choix de la fonction de coût}
+En revanche il apparait que l'utilisation de la fonction Softmax en sortie donne de meilleurs résultats que celle d'une sigmoïde. L'emploi de Softmax entrainant un cout en temps plus important que celui de Sigmoïde, cet avantage est à relativiser.
 
 
 \subsection{Taille des batchs et nombre de passages}
+
+La taille d'un batch est le nombre d'exemples que l'on insère dans le réseau entre chaque rétropropagation du gradient.
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.5]{images/precision_taille_batch.png}
+\caption{Influence de la taille du batch}
+\label{precision_taille_batch}
+\end{center}
+\end{figure}
+
+La figure \ref{precision_taille_batch} présente la précision obtenue pour différentes tailles de batch. On remarque qu'au delà de 150,augmenter la taille du batch n'améliore presque plus les performances du réseau.
+La figure \ref{precision_batch_temps} présente les mêmes données que la figure \ref{precision_taille_batch} mais répartis en fonction du temps de calcul. Utiliser des batchs plus petits semble être plus efficace pour l'apprentissage des données mnist.
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.5]{images/precision_batch_temps.png}
+\caption{Influence de la taille du batch sur le temps de calcul}
+\label{precision_batch_temps}
+\end{center}
+\end{figure}
 
 
 \subsection{Taux d'apprentissage}
@@ -267,7 +313,7 @@ Nous avons aussi étudié l'influence du taux d'apprentissage ou learning rate. 
 \end{center}
 \end{figure}
 
-L'architecture du réseau a été choisie sans couche cachée avec 10 neurones de sortie sous forme de Softmax. Le neurone de coût est un SoftmaxCrossEntropy, et l'apprentissage se fait avec des lots de 128 exemples. Nous avons alors étudié l'apprentissage du réseau pour des taux d'apprentissage allant de 0.01 à 100.
+Nous avons alors étudié l'apprentissage du réseau pour des taux d'apprentissage allant de 0.01 à 100.
 Nous pouvons alors distinguer trois cas reflétant les principaux comportements :
 
 \begin{itemize}
