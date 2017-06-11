@@ -2,9 +2,78 @@
 
 \section{Introduction}
 
-La deuxième application des LSTM à laquelle nous nous sommes intéressés consistait en la génération de musique. Pour cela, nous avons envisagé quatre approches. La première n'est pas directement liée à la musique. En effet, on utilise alors le format abc qui représente un morceau de musique par un texte. La génération se faisait alors simplement en appliquant ce que l'on avait fait avec Shakespeare. La deuxième méthode consiste à utiliser le format midi. Celui-ci permet de représenter simplement l'état des notes à chaque instant. La troisième méthode s'appuie sur l'utilisation de partitions qui permettent de retranscrire efficacement un morceau de musique. Dans ce cas-là, on génère directement une partition. Enfin, la dernière méthode consiste à exploiter directement un signal sonore. Cela permet d'utiliser tout type de son. \\
-Quelle que soit la stratégie utilisée, il convient de trouver une base de données suffisamment fournie afin de pouvoir entraîner le réseau dessus. Il est assez difficile de trouver des fichiers abc sur différents styles de musique. En revanche il existe plusieurs bases de données réunissant de nombreux fichiers midi. Enfin, l'utilisation de signaux permet de s'affranchir de ces problèmes puisqu'il est alors possible d'utiliser n'importe quel fichier sonore (wav, mp3, ...). Des convertisseurs existent afin de passer d'un format à l'autre, mais ceux-ci sont plus ou moins efficaces.
+La deuxième application des LSTM à laquelle nous nous sommes intéressés consistait en la génération de musique. Pour cela, nous avons envisagé quatre approches. La première n'est pas directement liée à la musique. En effet, on utilise alors le format abc qui représente un morceau de musique sous forme de texte. La génération se fait alors simplement en appliquant ce que l'on a fait avec Shakespeare. La deuxième méthode consiste à utiliser le format midi. Celui-ci permet de représenter simplement l'état des notes à chaque instant. La troisième méthode s'appuie sur l'utilisation de partitions qui permettent de retranscrire efficacement un morceau de musique. Dans ce cas-là, on génère directement une partition. Enfin, la dernière méthode consiste à exploiter un signal sonore. Cela permet d'utiliser tout type de son. \\
+Quelle que soit la stratégie utilisée, il convient de trouver une base de données suffisamment fournie afin de pouvoir entraîner le réseau dessus. Il est assez difficile de trouver des fichiers abc sur différents styles de musique. En revanche, il existe plusieurs bases de données réunissant de nombreux fichiers midi. Enfin, l'utilisation de signaux permet de s'affranchir de ces problèmes puisqu'il est alors possible d'utiliser n'importe quel fichier sonore (wav, mp3, ...). Des convertisseurs existent afin de passer d'un format à l'autre, mais ceux-ci sont plus ou moins efficaces.
+
 \section{Génération en abc}
+
+\subsection{Présentation du format}
+
+Le langage abc permet de représenter un morceau de musique en format ASCII. Il s'est rapidement développé grâce à sa facilité de représentation et de compatibilité entre les différents systèmes d'exploitation. De plus, ce langage ne nécessite pas l'utilisation d'un ordinateur pour être lu, contrairement au midi. Ainsi, les morceaux sont représentés de manière simple, efficace et compacte. \\
+Un fichier abc est composé de deux parties : un entête et le corps de la musique.
+L'entête permet de définir les caractéristiques globales du morceau :
+\begin{itemize}
+\item X : numéro du morceau dans le fichier
+\item T : titre
+\item M : valeur de la mesure
+\item L : valeur de la note de référence
+\item K : tonalité
+\item P : ordre dans lequel les sections sont jouées
+\end{itemize}
+Le corps correspond à l'écriture du morceau. Les notes sont représentées dans le système anglo-saxon : a=la; b=si; c=do; d=ré; e=mi; f=fa; g=sol. Le choix des majuscules/minuscules et des symboles "," et "'" permettent de choisir les octaves utilisées. Les guillemets servent à écrire les accords. Les séparateurs sont utilisés pour les mesures et on peut spécifier les parties répétées. La figure \ref{fichier_abc_jig_exemple} est l'exemple d'une jig en format abc qui sera utilisée lors de l'apprentissage. 
+
+\begin{figure}[!h]
+\begin{verbatim}
+X: 3
+T:The American Dwarf
+% Nottingham Music Database
+S:FTB, via EF
+M:6/8
+K:D
+P:A
+A|"D" def fed|"G" BdB AFD| "D"DFA "G"B2 A|"Em" cee "A7" e2 A|
+"D" def fed|"G" BdB "D"AFD|"D" DFA "G"B2 A|"A7" Add "D" d2:|
+"B"e|"D"fga agf|"G" gab "A7"bag|"D"fga "D"agf|"Em" gfg "A7"e2 g|
+"D"fga agf|"G"gab "A7"bag|"D" fga "A7"efg|"D" fdd d2 :|
+\end{verbatim}
+\caption{Exemple d'un fichier ABC}
+\label{fichier_abc_jig_exemple}
+\end{figure}
+
+\subsection{Principe}
+Étant donné que les morceaux de musique sont représentés sous forme de texte, on adopte un système d'apprentissage similaire à celui utilisé avec Shakespeare. \\
+On utilise une cellule LSTM que l'on fait apprendre sur des séquences de longueur 50. Cela revient à déplier le réseau 50 fois à chaque apprentissage. Pour améliorer la rapidité et la convergence, on travaille avec des batchs de 50 séquences. L'algorithme d'optimisation choisi est RMSprop qui nous a donné les meilleurs résultats sur Shakespeare.
+
+\subsection{Résultats}
+Dans un premier temps, on réalise l'apprentissage sur un ensemble de 340 jigs trouvé sur une base de données de morceaux en abc. Le réseau arrive rapidement à apprendre la structure du format abc. De plus, les caractéristiques communes des jigs sont bien apprises; mélodie, accompagnement. La figure \ref{jig_generee_abc} est un exemple de jig générée avec notre réseau au format abc. Il existe des convertisseur abc/midi qui nous permettent de vérifier la cohérence du morceau généré. On voit ainsi que le réseau a très bien appris la structure des jigs, peut-être même trop bien, puisque certaines parties des morceaux générés sont quasiment identiques à des passages de la base de données d'apprentissage. Il arrive parfois que le texte généré présente quelques erreurs dans le format abc. Les convertisseurs sont en général capables de les corriger automatiquement voire d'ignorer les séquences absurdes.
+
+\begin{figure}[!h]
+\begin{verbatim}
+X: 66
+T:Pevim Dew's Music Datase
+% Nottingham Music Database
+S:Trae, arr Phil Rowe
+M:6/8
+K:G
+D|"D"F2A fed|c2A "F"A2A|"G"g2a "F#m"a2a|"Am"a3 -F#7"B2c|
+"C"c2c "G7"G2G|"C"EFG EFG|"D7"AGF c2d|"C7"e2c g2e|
+"F"afA fed|"Dm" B2A c3| ^g=c "E7"Bcd|
+"F"M3 c3|"D7"AFA dcA|"D"d2f a2f|"A7"agf abg|"D"baf d2d|"C"ede "G"dcB|
+"D7"d2B c2A|"Gm"d2g "A7ec|edc BcA|"D""D"FAF "A"AFA|"D"FFD d2::
+c|"Dm"d2e e3|"D7"dcB "F"dcf|
+"G"f2d "A7"=g^c2|"D"d3 "A7"gef|
+"A"f2e "A7"AFA|"D"def f2f|"D"a2d "A7"edc|"D"fdd cdd::
+/2c/2|"D"a2f "G"d2f|"D"f2f "A7"gaf|"D"a2d "E7"cBA|A6|"D"Adc d2C|
+[1"B7"BADFFAFA|"D"d, D "Cm"=c2c: [G"G2B-d2e|"F"a2e "C7/g""A7"^fe||
+"D" "Dm"def "G/b"gge "D"f2B|"G"gfg gfg|edc AGG|"G"Bdg efd|"Am"eAA 
+"D7"ABc|"G"B3 -B2B|Bdd G3:|
+\end{verbatim}
+\caption{Exemple d'une jig générée}
+\label{jig_generee_abc}
+\end{figure}
+
+Cette méthode de génération est assez efficace et facile à mettre en oeuvre. Cependant, elle est assez limitée puisque l'on n'utilise qu'une représentation textuelle de la musique. Pour des morceaux plus complexes, comme Mozart, le réseaux a bien plus de mal à apprendre la structure de base du format. \\
+On essaiera par la suite de proposer des méthodes d'apprentissage et de représentation des morceaux plus proches de la musique.
 
 \section{Génération en midi}
 
