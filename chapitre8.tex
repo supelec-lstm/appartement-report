@@ -86,7 +86,7 @@ W_{t+1} = W_t + v_{t+1}
 \end{aligned}
 \end{equation}
  
-\subsection{Adams}
+\subsection{Adam}
 
 Le dernier algorithme présenté consiste à reprendre les moments d'ordre 1 et 2 du gradient, $m_t$ et $g_t$, mais en les faisant cette fois-ci décroître dans le temps à l'aide de coefficients $\gamma_1$ et $\gamma_2$ $\in$ [0,1[
 
@@ -132,3 +132,6 @@ On observe que les fonctions de coût pour les algorithmes à learning rate adap
 La différence entre la descente de gradient stochastique et les autres algorithmes est encore plus flagrante dans ce cas : la convergence est bien plus rapide, nécessitant bien moins d'exemples d'apprentissage. Nous avons donc par la suite totalement délaissé la descente de gradient classique au profit de RMSProp ou Adam, beaucoup plus performants.
 
 \section {Conclusion}
+Si la descente du gradient stochastique est l'algorithme le plus répandu dans la littérature, il existe de nombreuses autres méthodes d'optimisation pour la minimisation de la fonction de coût. Nous avons présenté les plus populaires d'entre elles dans ce chapitre et avons réalisé qu'elles permettaient d'avoir de bien meilleures performances pour les applications que nous avons considérées. 
+
+Il existe également une autre famille d'algorithmes du second ordre que nous n'avons pas eu le temps d'implémenter (méthode de Newton, BFGS, conjugate gradient...). Cependant, si nous avons trouvé des implémentations des algorithmes de ce chapitre dans des projets disponibles sur Internet, ce n'est pas le cas des méthodes du second ordre. Il est donc possible que ces dernières soient moins efficaces, que ce soit au niveau du temps de calcul ou de l'espace mémoire, bien que cela reste à vérifier.

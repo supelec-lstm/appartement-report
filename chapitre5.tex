@@ -281,6 +281,12 @@ V & 0.00 & 0.00 & 0.01 & 0.02 & 0.02 & 0.00 & 0.97 \\
 \end{tabular}
 \end{center}
 
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.4]{images/chapter5/rtrl_bptt.png}
+\end{center}
+\end{figure}
+
 \section{Problème des dépendances temporelles}
 
 \label{dependances_temporelles}
@@ -314,7 +320,7 @@ On note alors pour $i \in \{1, ..., m\}$ :
 
 Notre objectif est de montrer que la dépendance temporelle entre un neurone caché du temps $t$ et d'un neurone du temps $t + q$ diminue rapidement avec $q$. Ce qui montrera que cette architecture n'est pas adaptée pour apprendre des dépendances à long terme.
 
-Pour cela, nous allons étudier la quantité $\frac{\partial \epsilon_i(t)}{\partial \epsilon_j(t+q)} = \frac{\frac{\partial E}{\partial s_i(t)}}{\frac{\partial E}{\partial s_j(t+q)}}$ qui peut se comprendre intuitivement en simplifiant abusivement l'expression en $\frac{\partial s_j(t+q)}{\partial s_i(t)}$ c'est-à-dire la variation de l'activation d'un neurone $j$ du temps $t+q$ par rapport à celle d'un neurone $i$ du temps $t$. Nous allons montrer que cette quantité décroit rapidement avec $q$.
+$\epsilon_i(t)$ représente le gradient de l'erreur par rapport à l'activation d'un neurone $i$ du temps $t$ et $\epsilon_j(t+q)$ le gradient de l'erreur par rapport à l'activation d'un neurone $j$ du temps $t+q$. On voudrait montrer que ces deux quantités s'influencent de moins en moins lorsque $q$ augmente. En effet cela montrerait que lors de est difficile d'apprendre des dépendances à long terme. Pour cela, nous allons donc étudier la quantité $\frac{\partial \epsilon_i(t)}{\partial \epsilon_j(t+q)}$ et montrer que celle-ci décroit rapidement avec $q$.
 
 Pour un neurone de sortie, on a :
 $$

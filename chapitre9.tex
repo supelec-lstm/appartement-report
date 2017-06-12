@@ -165,3 +165,28 @@ Il est nécessaire de passer un grand nombre de batchs avant d'avoir des résult
 
 
 \section{Génération de signaux}
+\subsection{Présentation du format}
+Cette génération consiste à considérer la musique en tant que signal : cela nous permettra en effet de nous affranchir de la nécessité d'avoir un format de musique particulier et nous pourrons traiter directement des formats bien plus répandus comme le .mp3 ou le .wav. C'est précisément ce dernier que nous avons retenu, la librairie scipy de Python possédant des fonctions permettant d'appréhender très facilement ce format. L'entraînement se fera sur les coefficients de Fourier de ces signaux sonores, ceux-ci permettant de récupérer sous forme simple toute l'information relative aux morceaux.
+
+\subsection{Principe}
+La variété des morceaux .wav (durée, fréquence d'échantillonage...) et les contraintes matérielles (espace mémoire, temps de calcul...) nous ont poussé à devoir réaliser un prétraitement des données dans notre programme. Celui-ci sous échantillonne tout d'abord les morceaux à une fréquence $F_e = 16kHz$, la plupart des morceaux étant à $44kHz$ par défaut. Il s'agit ensuite de les découper en morceaux de durée T de l'ordre de la dizaine de millisecondes ($0,25$ dans notre implémentation). En effet, l'étape suivante consiste à appliquer la transformée de Fourier rapide sur chacun de ces morceaux élémentaires, il y aura donc $F_e \times T = 4000$ coefficients complexe au total, on voit donc tout l'intérêt du sous-échantillonage et du choix d'une durée T peu élevée. 
+
+L'étape suivante est de séparer les contributions réelles et imaginaires de chaque coefficient, que l'on place alors dans des vecteurs de taille 8000. On possèdera finalement pour chaque morceau élémentaire un vecteur contenant ses coefficients de Fourier. Pour obtenir le morceau initial, il s'agira tout simplement de reformer les coefficients de Fourier avec leurs parties réelles et imaginaires, d'appliquer la transformée de Fourier rapide inverse et de concaténer les morceaux élémentaires.
+
+Le réseau sera capable après entraînement de générer des morceaux de longueurs variables, décidée à l'avance par l'utilisateur, celle-ci étant simplement tributaire du nombre de vecteurs à générer.
+
+\subsection{Résultat}
+
+Le dataset est composé de morceaux de piano de durées variables. Le réseau est constitué de 2 cellules lstm avec un état caché de taille 512. L'algorithme d'optimisation utilisé est RMSProp, avec un learning rate de 0.95. Le coût, calculé avec la norme 2, décroît de plus de 1000 à 0.4 en 600 batchs. On soulignera l'importance de la normalisation des coefficients de Fourier pour éviter d'avoir des valeurs trop faibles lors du passage des valeurs dans les sigmoïdes.
+La génération donne cependant un morceau très bruité dont la représentation spectrale est visible ci-dessous :
+
+\begin{figure}[!h]
+\begin{center}
+	{\includegraphics[scale=0.4]{images/chapter9/spectre.png}\label{spectre}}
+  \caption{Représentation spectrale du morceau généré}
+\end{center}
+\end{figure}
+
+Deux explications sont alors possibles. La première serait qu'il y a un problème dans le programme. La seconde consisterait à dire que le bruit est la structure la plus évidente à apprendre, étant présente en permanence. Nous avons été également limités par la taille de notre état caché : lorsque nous avons essayé de l'augmenter de façon significative, des erreurs mémoires ont été observées, la place occupée étant trop importante. Or plus l'état caché est de taille importante plus les cellules seront capables de saisir les spécificités des liens entre les différents instants. On peut donc raisonnablement penser que la limitation viendrait de là. Le manque de temps et de matériel nous a empêché de vérifier cette possibilité.
+
+
