@@ -177,34 +177,109 @@ Utilisons les formules \ref{E_t} et \ref{y_k_recurrence} pour écrire l'algorith
 
 On parle d'apprentissage en temps réel car il est possible d'apprendre après élément de la séquence $x_1, ..., x_n$. Ou bien d'accumuler le gradient sur toute la séquence $x_1, ..., x_n$ comme présenté dans l'algorithme \ref{RTRL}. Nos expériences ont montré qu'il était mieux d'accumuler le gradient sur une séquence en entière voire sur des batches de plusieurs séquences.
 
+\section{Comparaison des deux algorithmes}
+
+La première remarque à faire est que si on prend le réseau décrit dans la section précédente et que l'on accumule le gradient sur une séquence alors les algorithmes RTRL et BPTT calculent la même quantité : $\frac{\partial E}{\partial w}$.
+
+On pourra vérifier en pratique que les deux algorithmes calculent bien la même quantité dans la section suivante où les résultats sont identiques.
+
+Intéressons, nous maintenant aux complexités de ces deux algorithmes. Le tableau ci-dessous résume leurs complexités en espace et en temps où l'on considère un réseau à $n$ neurones et une séquence taille $L$.
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+& Complexité en temps & Complexité en espace \\
+\hline 
+RTRL & $O(n^4)$ & $O(n^{3})$ \\
+\hline
+BPTT & $O(Ln^2)$ & $O(Ln)$ \\
+\hline
+\end{tabular}
+\end{center}
+
+Justifions rapidement ces résultats. Pour RTRL :
+\begin{itemize}
+\item Complexité en space : besoin de stocker un tableau $p$ de dimension $3$ d'où un coût en $O(n^3)$.
+\item Complexité en temps : la mise à jour de chaque élément du tableau nécessite le calcul d'une somme de $n$ termes d'où un coût en $O(n^4)$.
+\end{itemize}
+
+Et pour BPTT :
+\begin{itemize}
+\item Complexité en espace : valeurs de sortie des $Ln$ neurones (après dépliage).
+\item Complexité en temps : chacun des $Ln$ neurones met à jour ses poids en $O(n)$ ($O(1)$ pour chacun de ses $n$ poids) d'où un coût en $O(Ln^2)$.
+\end{itemize}
+
+L'algorithme BPTT est donc bien plus intéressant du point de vue temporel et même spatial si la taille de la séquence n'est pas trop élévée.
+
+L'algorithme BPTT a donc de nombreux avantages par rapport à RTRL :
+\begin{itemize}
+\item conceptuellement, il s'agit de la continuité naturelle de la rétropropagation des réseaux feedforward pour les réseaux récurrents ;
+\item il possède une meilleure complexité temporelle et spatiale que RTRL ;
+\item il peut s'appliquer à n'importe quelle architecture de réseaux récurrents, et donc en particulier à l'architecture LSTM que nous verrons plus tard. Alors que RTRL lui n'a été développé que pour les réseaux fully connected, même s'il doit être possible de déterminer les formules de propagation pour d'autres architectures.
+\end{itemize}
+
 \section{Évaluation}
+
+Nous avons implémenté les algorithmes BPTT et RTRL avec comme objectif d'apprendre à des réseaux récurrents la grammaire de Reber.
+
+Dans la première sous-section est décrit avec plus de détails le problème à résoudre. Dans la deuxième sous-section, sont exposés les résultats obtenus par les deux algorithmes.
 
 \subsection{Grammaire de Reber}
 
-Dans un premier temps, nous comparerons ces algorithmes sur l'apprentissage de la grammaire de Reber, qui est régulière. Nous utiliserons la grammaire simple présentée sur la figure \ref{Grammaire de Reber simple}.
+Dans un premier temps, nous avons comparé ces algorithmes sur l'apprentissage de la grammaire de Reber, qui est régulière. Nous utiliserons la grammaire simple présentée sur la figure \ref{Grammaire de Reber simple}.
 
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[scale=0.3]{images/reber_simple.png}
+\input{images/chapter5/reber_simple.tex}
 \caption{Automate reconnaissant la grammaire de Reber simple}
 \label{Grammaire de Reber simple}
 \end{center}
 \end{figure}
 
-A l'aide de cette automate, nous générerons deux ensembles de mots respectivement afin d'entraîner et de tester notre futur réseau. L'objectif du réseau sera alors d'apprendre cette grammaire afin de prédire les caractères possibles après un caractère donné.
+À l'aide de cette automate, nous avons généré deux ensembles de mots respectivement afin d'entraîner et de tester notre futur réseau. L'objectif du réseau sera alors d'apprendre cette grammaire afin de prédire les caractères possibles après un caractère donné.
 
-L'étape suivante consistera à tester les algorithmes sur l'apprentissage de la grammaire de Reber symmétrique présentée sur la figure \ref{Grammaire de Reber symétrique}.  
+Plus précisément, si $w_1w_2...w_n$ est un mot reconnu par le grammaire de Reber. Nous associons à chaque lettre de l'ensemble $\{B, T, P, S, X, V, E\}$ un nombre dans $\{1, ..., 7\}$. Puis nous créons une séquence $(x_1, ..., x_n)$ où pour tout $i$, $x_i \in \mathbb{R}^7$ est la lettre $w_i$ \textit{one hot encoded}. Par exemple si $w_1$ est $B$ et que $B$ est associé au nombre $1$ alors $x_1 = (1, 0, ..., 0)$. À chaque temps $t \in \{1, ..., n-1\}$, nous voulons que le réseau prédisent les transitions possibles pour de l'automate après qu'il est vu $w_1...w_t$.
+
+Les réseaux que nous utiliserons, émettront à chaque temps $t$ un vecteur de $\mathbb{R}^7$ où chaque coordonnée sera comprise entre $0$ et $1$. Nous dirons que le réseau a prédit une transition utilisant la lettre $w$ au temps $t$ si la coordonnée correspondante du vecteur a une valeur supérieure à un seuil défini. Nous avons utilisé $0.3$ comme valeur seuil.
+
+Lors des phases de test, nous calculons un score pour évaluer le réseau. Ce score est la proportion des mots pour lesquels il a prédit correctement toutes les transitions.
+
+Ce premier problème permet d'évaluer la capacité des réseaux récurrents à traiter des séquences de taille variable.
+
+L'étape suivante consistera à tester les algorithmes sur l'apprentissage de la grammaire de Reber symétrique présentée sur la figure \ref{Grammaire de Reber symétrique}.  
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[scale=0.5]{images/reber_symmetrique.png}
-\caption{Automate reconnaissant la grammaire de Reber symmétrique}
-\label{Grammaire de Reber symmétrique}
+\input{images/chapter5/reber_double.tex}
+\caption{Automate reconnaissant la grammaire de Reber symétrique}
+\label{Grammaire de Reber symétrique}
 \end{center}
 \end{figure}
 
-Dans cette situation, le réseau devra être capable de se souvenir d'un état passé (T ou P) afin de prédire le nouvel état (T ou P). Cet état passé pourra être plus ou moins lointain en fonction de la taille de la grammaire de Reber insérée au milieu. 
+Cette fois le problème qui nous intéresse est de savoir si le réseau est capable de retenir une information sur le long terme. Ainsi si nous évaluerons le réseau sur sa capacité à bien se souvenir que la deuxième lettre est la même que l'avant dernière lettre d'un mot de la grammaire de Reber symétrique.
 
-\section{Comparaison des deux algorithmes}
+Cette fois nous utilisons un score différent. Le score sera la proportion des mots pour lesquels le réseau a correctement prédit que la deuxième lettre était la même que l'avant dernière.
+
+\subsection{Résultats}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Caractère présenté & B & T & P & S & X & V & E \\
+\hline
+B & 0.01 & 0.48 & 0.51 & 0.01 & 0.01 & 0.01 & 0.01 \\
+\hline
+T & 0.00 & 0.02 & 0.00 & 0.56 & 0.43 & 0.02 & 0.01 \\
+\hline
+X & 0.00 & 0.01 & 0.00 & 0.53 & 0.47 & 0.02 & 0.00 \\
+\hline
+X & 0.01 & 0.47 & 0.01 & 0.03 & 0.02 & 0.50 & 0.02 \\
+\hline
+V & 0.01 & 0.01 & 0.51 & 0.00 & 0.00 & 0.47 & 0.03 \\
+\hline
+V & 0.00 & 0.00 & 0.01 & 0.02 & 0.02 & 0.00 & 0.97 \\
+\hline
+\end{tabular}
+\end{center}
 
 \section{Problème des dépendances temporelles}
 
@@ -314,3 +389,5 @@ $$
 On en conclut que si $w_{max} < \frac{4}{n}$ alors on a une décroissance exponentielle.
 
 Ce résultat dit donc que si les poids sont inférieurs à une certaine valeur alors, on peut être sûr que le réseau ne pourra pas modéliser convenablement les dépendances à long terme.
+
+Afin de contourner ce problème, nous introduisons dans la partie suivante une architecture de réseaux de neurones récurrents, le LSTM, qui a été développée pour résoudre ce problème spécifiquement.
