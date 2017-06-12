@@ -1,0 +1,184 @@
+\chapter{Long Short-Term Memory (LSTM)}
+\section{Motivation}
+Les réseaux de neurones récurrents étudiés jusqu'alors permettent effectivement d'apprendre des suites de séquences. Néanmoins, on observe un phénomène d'oubli se caractérisant par une faible influence des plus vieilles informations sur la sortie actuelle.
+
+Cela est dû à la rétropropagation du gradient. En effet, celle-ci est basée sur la règle de la chaîne qui fait donc apparaître un produit de dérivées de fonctions d'activation. Or si ces dérivées sont supérieures à 1, cette partie du gradient rétropropagé risque d'exploser. A l'inverse, si elles sont inférieures à 1, comme c'est le cas pour la sigmoide dont la dérivée a une valeur maximale de 0
+25, cette partie du gradient tend à disparaître lorsque l'on remonte loin dans le temps. Ainsi, on perd la dépendance à long terme.
+
+Nous travaillions jusque là avec des réseaux récurrents comme celui présenté sur la figure \ref{RNN classique} composé d'une simple couche de tangentes hyperboliques.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.25]{images/chapter6/RNN_classique.png}
+\caption{Dépliage d'un RNN classique}
+\label{RNN classique}
+\end{center}
+\end{figure}
+
+Dans le cadre des LSTM, nous utilisons une nouvelle cellule de base afin d'éviter cette disparition du gradient lors de la rétropropagation.
+
+\newpage
+
+\section{Principe de fonctionnement}
+Comme pour les réseaux récurrents, on peut déplier les LSTM afin de se ramener à une cellule de base qui se répète. Le principe des LSTM repose sur l'existence d'un état qui apparaît tout en haut de la cellule et qui subit seulement quelques modifications linéaires. Cela permettra ainsi, lors de la rétropropagation du gradient, de ne pas perdre la dépendance avec les informations lointaines.
+
+La cellule de base des LSTM peut donc être représentée par la figure suivante.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.12]{images/chapter6/LSTM_article_plusieurscell.png}
+\caption{Cellule élémentaire des LSTM}
+\label{cellule LSTM}
+\end{center}
+\end{figure}
+
+Cette figure permet de représenter facilement le réseau en utilisant la structure d'un graphe de calcul. Il faut cependant bien distinguer les fonctions tanh et sigmoide qui symbolisent une couche entière de neurones (dans les rectangles jaunes) et la fonction tanh (dans le cercle rose) qui s'applique à chaque élément du vecteur en entrée. De même, les multiplications dans les cercles roses se font terme à terme.
+
+Les poids à régler lors de l'apprentissage se situent au niveau de chaque couche de neurones sigmoide et tanh. Il est à noter que lorsque l'on déplie la cellule LSTM dans le temps, les poids sont les mêmes d'une cellule à l'autre. Le fait qu'ils soient ainsi partagés sera important pour l'implémentation.
+
+On peut distinguer plusieurs parties dans la cellule LSTM qui possèdent chacune une fonction particulière.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.2]{images/chapter6/LSTM_article_gates.png}
+\caption{Différentes parties d'une cellule LSTM}
+\label{cellule LSTM gates}
+\end{center}
+\end{figure}
+
+Le cell state S correspond à la mémoire de la cellule. Celle-ci subit peu de modification au cours du temps, correspondant à l'ajout d'information dans la mémoire.
+
+Les sigmoides permettent d'obtenir des sorties comprises entre 0 et 1. On peut donc pondérer l'importance d'une valeur en la multipliant par la sortie d'une sigmoïde. Si la sortie de la sigmoide est proche de 1, cela signifie que l'on garde la valeur, en revanche, si celle-ci est proche de 0, on oublie la valeur calculée.
+
+Ainsi on calcule un vecteur i à partir de l'entrée et de la sortie précédente à l'aide d'une couche de tanh. Puis, on le multiplie terme à terme par le vecteur de sortie g d'une couche de sigmoides appelée input gate afin de sélectionner les informations que l'on souhaite conserver. Enfin, on ajoute ces informations sélectionnées dans le cell state. 
+
+La sortie de la cellule est obtenue à partir du cell state auquel on applique une tanh. Enfin, on sélectionne les informations que l'on veut garder en sortie à l'aide d'une couche de sigmoides appelée output gate appliquée à l'entrée.
+
+
+En pratique, on n'est pas sûr qu'une cellule LSTM suive effectivement le principe décrit précédemment. Celui-ci est plutôt une illustration afin de comprendre de manière générale le fonctionnement des LSTM.
+
+La structure d'une cellule LSTM n'est pas non figée. En effet, il est possible de l'adapter en ajoutant, enlevant certains éléments, gates. Par exemple, on peut ajouter une forget gate composée d'une couche de sigmoides au début de la cellule. On multiplie la sortie de cette forget gate afin de garder, supprimer, réduire certaines composantes du cell state. 
+
+\break
+
+Dans le cas d'une cellule LSTM, les équations de propagation sont simples à calculer. En effet, comme pour le graphe de calcul, les équations sont directement données par le schéma.
+
+Pour la bakcpropagation du gradient, il est toutefois nécessaire de calculer les formules à utiliser dans l'algorithme. La figure \ref{cellule LSTM gradient} fait apparaître le gradient à chaque endroit de la cellule.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{images/chapter6/LSTM_gradient.png}
+\caption{Cellule LSTM}
+\label{cellule LSTM gradient}
+\end{center}
+\end{figure}
+
+
+En utilisant, BPTT pour rétropropager le gradient sur le graphe du LSTM déplié, on obtient les formules suivantes :
+
+\begin{equation}
+\varepsilon_{S(t-1)} = \frac{\partial J}{\partial S(t)} = \varepsilon_{S(t)} + F_{l}^{\prime}\text{diag}(o)\frac{\partial J}{\partial H(t)}
+\end{equation}
+
+\begin{equation}
+\varepsilon_{H(t-1)} = \left((W_{g}^{T}F_{g}^{\prime}\text{diag}(i) + W_{i}^{T}F_{i}^{\prime}\text{diag}(g))\frac{\partial J}{\partial S(t)} + W_{o}^{T}F_{o}^{\prime}\text{diag}(l)\frac{\partial J}{\partial H(t)}\right)_{1,...,n}
+\end{equation}
+
+avec :
+
+\[
+F_{l}^{\prime} = \text{diag}((1 - l_{i}^{2})_{i=1,...,n})
+\]
+
+\[
+F_{i}^{\prime} = \text{diag}((1 - i_{i}^{2})_{i=1,...,n})
+\]
+
+\[
+F_{g}^{\prime} = \text{diag}((g_{i}(1 - g_{i}))_{i=1,...,n})
+\]
+
+\[
+F_{o}^{\prime} = \text{diag}((o_{i}(1 - o_{i}))_{i=1,...,n})
+\]
+
+
+Il est alors possible de calculer le gradient relatif à chaque matrice de poids.
+
+\begin{equation}
+\frac{\partial J}{\partial W_{o}}=
+\begin{pmatrix}
+H(t-1) \\
+x(t)
+\end{pmatrix}
+\left(F_{o}^{\prime}\text{diag}(l)\frac{\partial J}{\partial H(t)}\right)^{T}
+\end{equation}
+
+\begin{equation}
+\frac{\partial J}{\partial W_{i}}=
+\begin{pmatrix}
+H(t-1) \\
+x(t)
+\end{pmatrix}
+\left(F_{i}^{\prime}\text{diag}(g)\frac{\partial J}{\partial S(t)}\right)^{T}
+\end{equation}
+
+\begin{equation}
+\frac{\partial J}{\partial W_{g}}=
+\begin{pmatrix}
+H(t-1) \\
+x(t)
+\end{pmatrix}
+\left(F_{g}^{\prime}\text{diag}(i)\frac{\partial J}{\partial S(t)}\right)^{T}
+\end{equation}
+
+On rétropropage le gradient dans tout le graphe déplié avec les formules précédentes. Celui-ci est à chaque fois accumulé au niveau des poids. Les poids $W_{o}$, $W_{i}$ et $W_{g}$ sont alors mis à jour avec la formule :
+
+\begin{equation}
+W = W - \eta \sum{\frac{\partial J}{\partial W}}
+\end{equation} 
+
+\section{Première Implémentation}
+
+Une première implémentation des LSTM a été réalisé en conservant le plus possible le concept de cellule indépendante. Ainsi une classe Weights contient tous les poids de la cellule et la classe Lstmcell se contentera elle de calculer la propagation et la rétropropagation (Voir Figure 4.4 de la cellule LSTM pour situer les poids).
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{images/chapter6/UML_LSTM_Implementation_1.png}
+\caption{Diagramme UML de la cellule LSTM}
+\label{cellule LSTM UML 1}
+\end{center}
+\end{figure}
+
+\section{Implémentation avec des nœuds}
+
+Cette seconde implémentation a pour but de réutiliser \texttt{pychain}, la librairie de graphes de calculs que nous avons développée et déjà appliquée aux réseaux feedforward et aux réseaux récurrents. L'utilisation des graphes de calculs nous permettra d'optimiser les calculs mais surtout de gagner en flexibilité. En effet, on pourra alors facilement changer l'architecture de la cellule LSTM mais aussi très simplement combiner plusieurs cellules entre elles. Ou même combiner des cellules LSTM avec des réseaux feedforward.
+
+L'objectif est de créer un n\oe{}ud à trois entrées et à deux sorties comme décrit sur la figure \ref{lstm_node_macro}.
+
+\begin{figure}[h!]
+\begin{center}
+\input{images/chapter6/node_lstm.tex}
+\caption{Architecture macroscopique de la cellule LSTM.}
+\label{lstm_node_macro}
+\end{center}
+\end{figure}
+
+Deux solutions s'offraient à nous. On pouvait réutiliser les équations de propagation et de rétropropagation décrite dans la section précédente. Cette solution a l'inconvénient qu'il est nécessaire de dériver à la main les formules de propagation et de rétropropagation à chaque fois que l'on veut changer l'architecture de la cellule LSTM. On n'atteint donc pas l'objectif de flexibilité.
+
+L'autre solution consiste à exprimer le n\oe{}ud LSTM en fonction d'autres n\oe{}uds élémentaires que nous avons définis dans la partie \ref{comp_graph_part}. Comme cela, le gradient sera calculé automatiquement par les n\oe{}uds. Afin de créer un tel n\oe{}uds, nous avons défini une classe \textit{CompositeNode} qui est basée sur le design pattern Composite. Il s'agit d'une classe fille de la classe \textit{Node} qui a comme attributs d'autres n\oe{}uds. La classe \textit{LSTMNode} est alors une classe fille de la classe \textit{CompositeNode}.
+
+La figure \ref{lstm_node_micro} présente les n\oe{}uds qui composent la cellule LSTM ainsi définie.
+
+\begin{figure}[h!]
+\begin{center}
+\input{images/chapter6/lstm_node.tex}
+\caption{Cellule LSTM comme n\oe{}ud composite. Elle est composée d'autres n\oe{}uds que nous avons définis auparavant dans la partie \ref{comp_graph_part}}
+\label{lstm_node_micro}
+\end{center}
+\end{figure}
+
+Grâce à cette architecture nous avons pu tester différentes variantes de la cellule LSTM : avec ou sans forget gate. Mais surtout, nous avons considérablement augmenté la puissance de notre librairie en permettant de créer des n\oe{}uds à partir d'autres n\oe{}uds ce qui permet de créer des modèles beaucoup plus complexes.
+
+\section{Résultats}
+\section{Autres applications}
