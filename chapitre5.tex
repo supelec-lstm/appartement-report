@@ -68,6 +68,8 @@ En pratique, le dépliage est un processus coûteux en temps. Lors de l'apprenti
 
 \section{RTRL}
 
+\label{RTRL_section}
+
 Détaillons maintenant l'algorithme RTRL qui a une philosophique complètement différente. Au lieu de rétropropager le gradient, nous allons le propager.
 
 Nous nous plaçons dans le cas particulier où le réseau est fully connected comme sur la figure \ref{fully_connected_recurrent_network}. 
@@ -113,7 +115,7 @@ Nous pouvons alors calculer la dérivée du coût partiel au temps $t$, $E(t)$, 
 \frac{\partial E(t)}{\partial w_{i,j}} = \sum_{k \in U}{\frac{\partial E(t)}{\partial y_k(t)}\frac{\partial y_k(t)}{\partial w_{i,j}}}
 \label{E_t}
 \end{equation}
-Le terme $\frac{\partial E(t)}{\partial y_k(t)}$ est connu, il dépend de la fonction de coût utilisé. Pour une fonction de coût quadratique $E(t) = \sum_{k \in U}{(y_k(t) - d_k(t))^2}$ avec $d_k(t)$ la valeur attendue pour $y_k(t)$, on a $\frac{\partial E(t)}{\partial y_k(t)} = 2(y_k(t) - d_k(t))$. 
+Le terme $\frac{\partial E(t)}{\partial y_k(t)}$ est connu, il dépend de la fonction de coût utilisée. Pour une fonction de coût quadratique $E(t) = \sum_{k \in U}{(y_k(t) - d_k(t))^2}$ avec $d_k(t)$ la valeur attendue pour $y_k(t)$, on a $\frac{\partial E(t)}{\partial y_k(t)} = 2(y_k(t) - d_k(t))$. 
 
 Il nous reste donc le terme $\frac{\partial y_k(t)}{\partial w_{i,j}}$ à calculer. Déterminons une relation de récurrence entre $\frac{\partial y_k(t+1)}{\partial w_{i,j}}$ et les $(\frac{\partial y_l(t)}{\partial w_{i,j}})_{l\in U}$ :
 $$
@@ -173,7 +175,7 @@ Utilisons les formules \ref{E_t} et \ref{y_k_recurrence} pour écrire l'algorith
 \label{RTRL}
 \end{algorithm}
 
-On parle d'apprentissage en temps réel car il est possible d'apprendre après élément de la séquence $x_1, ..., x_n$. Ou bien d'accumuler le gradient sur toute la séquence $x_1, ..., x_n$ comme présenté dans l'algorithme \ref{RTRL}. Notre expérience a montré qu'il était mieux d'accumuler le gradient sur une séquence en entière voire sur des batches de plusieurs séquences.
+On parle d'apprentissage en temps réel car il est possible d'apprendre après élément de la séquence $x_1, ..., x_n$. Ou bien d'accumuler le gradient sur toute la séquence $x_1, ..., x_n$ comme présenté dans l'algorithme \ref{RTRL}. Nos expériences ont montré qu'il était mieux d'accumuler le gradient sur une séquence en entière voire sur des batches de plusieurs séquences.
 
 \section{Évaluation}
 
@@ -205,3 +207,110 @@ Dans cette situation, le réseau devra être capable de se souvenir d'un état p
 \section{Comparaison des deux algorithmes}
 
 \section{Problème des dépendances temporelles}
+
+\label{dependances_temporelles}
+
+Pour conclure cette partie, nous allons effectuer une analyse théorique montrant les limitations des réseaux récurrents fully-connected. Il en resortira la nécessité d'une architecture plus complexe permettant la conservation des dépendances temporelles à long terme.
+
+Nous allons prendre un réseau et des notations similaires à celui utilisé dans la partie \ref{RTRL_section} sur l'algorithme RTRL. On retrouvera une visualisation de l'architecture considérée dans la figure \ref{archi_dep_tempo}. On prend un réseau avec $n$ neurones cachés numérotés de $1$ à $n$, $m - n$ neurones de sortie numérotés de $n+1$ à $m$ et $p - m$ neurones d'entrée numérotés de $m+1$ à $p$.
+
+Les neurones cachés prennent comme entrées au temps $t$ les entrées du réseau au temps $t$ ainsi que les sorties des neurones cachés au temps $t-1$. Tandis que les neurones de sortie prennent comme entrées les sorties des neurones cachés au temps $t$.
+
+On note alors pour $i \in \{1, ..., m\}$ :
+\begin{itemize}
+	\item $s_i(t) = \left\{
+    \begin{array}{ll}
+        \sum_{j = 1}^{n}{w_{ij}y_j(t-1)} + \sum_{j = m+1}^{p}{w_{ij}y_j(t)} & \textsf{si } i \in \{1, ..., n\} \\
+        \sum_{j = 1}^{n}{w_{ij}y_j(t)} & \textsf{si } i \in \{n+1, ..., m\}
+    \end{array}
+\right.$
+	\item $y_i(t) = f_i(s_i(t))$
+	\item $E = \sum{E(t)}$
+	\item $\epsilon_i(t) = \frac{\partial E}{\partial s_i(t)}$
+\end{itemize}
+
+\begin{figure}
+\begin{center}
+\input{images/chapter5/network_demo_propag.tex}
+\caption{Architecture considérée dans la sous-section \ref{dependances_temporelles}}
+\label{archi_dep_tempo}
+\end{center}
+\end{figure}
+
+Notre objectif est de montrer que la dépendance temporelle entre un neurone caché du temps $t$ et d'un neurone du temps $t + q$ diminue rapidement avec $q$. Ce qui montrera que cette architecture n'est pas adaptée pour apprendre des dépendances à long terme.
+
+Pour cela, nous allons étudier la quantité $\frac{\partial \epsilon_i(t)}{\partial \epsilon_j(t+q)} = \frac{\frac{\partial E}{\partial s_i(t)}}{\frac{\partial E}{\partial s_j(t+q)}}$ qui peut se comprendre intuitivement en simplifiant abusivement l'expression en $\frac{\partial s_j(t+q)}{\partial s_i(t)}$ c'est-à-dire la variation de l'activation d'un neurone $j$ du temps $t+q$ par rapport à celle d'un neurone $i$ du temps $t$. Nous allons montrer que cette quantité décroit rapidement avec $q$.
+
+Pour un neurone de sortie, on a :
+$$
+\epsilon_i(t) = \frac{\partial E}{\partial y_i(t)}\frac{\partial y_i(t)}{s_i(t)} = \frac{\partial E}{\partial y_i(t)}f'_i(s_i(t))
+$$
+
+De même pour un neurone caché, d'après la règle de la chaine :
+$$
+\epsilon_i(t) = \sum_{j = 0}^{n}{\frac{\partial E}{\partial s_j(t+1)}\frac{\partial s_j(t+1)}{\partial s_i(t)}} + \sum_{j = n+1}^{m}{\frac{\partial E}{\partial s_j(t)}\frac{\partial s_j(t)}{\partial s_i(t)}}
+$$
+
+D'où :
+$$
+\epsilon_i(t) = \sum_{j = 0}^{n}{\epsilon_j(t+1)f'_i(s_i(t))w_{ji}} + \sum_{j = n+1}^{m}{\epsilon_j(t)f'_i(s_i(t))w_{ji}}
+$$
+
+On en déduit :
+$$
+\frac{\partial \epsilon_i(t)}{\partial \epsilon_j(t+1)} = f'_i(s_i(t))w_{ji}
+$$
+
+D'où par récurrence :
+$$
+\frac{\partial \epsilon_i(t)}{\partial \epsilon_j(t+q)} = \sum_{l_1 = 0}^{n}{\sum_{l_2 = 0}^{n}{...\sum_{l_{q-1} = 0}^{n}{\prod_{i=1}^{q}{f'_{l_i}(t+i-1)w_{l_{i+1}l_i}}}}}
+$$
+Cette quantité représente un flux local.
+
+Réécrivons cette quantité en utilisant une notation matricielle :
+$$
+\frac{\partial \epsilon_i(t)}{\partial \epsilon_j(t+q)} = W_j^TF'(t + q - 1)(\prod_{k = 2}^{q-1}{WF'(t + q - k)})W_if'_i(s_i(t))
+$$
+avec : 
+\begin{itemize}
+\item $W = (w_{ij})_{i,j}$
+\item $F'(t) = diag(f'_1(s_1(t)), ..., f'_n(s_n(t)))$
+\end{itemize}
+
+Soit une norme matricielle $||.||_A$ compatible avec une norme vectorielle $||.||_x$ telle que $max_{1, ..., n}(|x_i|) \leq ||x||_x$.
+
+L'hypothèse sur la norme $||.||_x$ donne :
+$$
+|x^Ty| = |\sum_{i=1}^{n}{x_iy_i}| \leq n max(|x_i|) max(|y_i|) \leq n||x||_x ||y||_x
+$$
+
+On a alors :
+$$
+|\frac{\partial \epsilon_i(t)}{\partial \epsilon_j(t+q)}| \leq n ||W_j||_x ||F'(t + q - 1)(\prod_{k = 2}^{q-1}{WF'(t + q - k)})W_if'_i(s_i(t))||_x
+$$
+
+Par compatibilité :
+$$
+|\frac{\partial \epsilon_i(t)}{\partial \epsilon_j(t+q)}| \leq n ||W_j||_x ||W||_A^{q-2} ||W_i||_x (f'_{max})^{q}
+$$
+avec $f'_{max} = max_{1, ..., n}(||F'(i)||_A)$
+
+On remarque que :
+$$
+\forall i, ||W_i||_x = ||We_i||_x \leq ||W||_A ||e_i||_x \leq \lambda ||W||_A
+$$
+avec $e_i=(1_{i=j})_j$ et $\lambda = max_{1, ..., n}(||e_i||_x)$
+
+Finalement :
+$$
+|\frac{\partial \epsilon_i(t)}{\partial \epsilon_j(t+q)}| \leq \lambda n ||W||_A^{q}(f'_{max})^{q}
+$$
+
+On prend $||A||_A = max_i(\sum_{j}{|a_{ij}|})$, $||x||_x = max_i(|x_i|)$ et $f_i(t) = \sigma(t) = \frac{1}{1+exp(-t)}$. On a alors $f'_{max} = \frac{1}{4}$, $\lambda = 1$ et $||W||_A \leq n w_{max}$ avec $w_{max} = max_{i,j}(|w_{ij}|)$, d'où :
+$$
+|\frac{\partial \epsilon_i(t)}{\partial \epsilon_j(t+q)}| \leq n (\frac{nw_{max}}{4})^{q}
+$$
+
+On en conclut que si $w_{max} < \frac{4}{n}$ alors on a une décroissance exponentielle.
+
+Ce résultat dit donc que si les poids sont inférieurs à une certaine valeur alors, on peut être sûr que le réseau ne pourra pas modéliser convenablement les dépendances à long terme.
