@@ -1,6 +1,8 @@
 \chapter{Algorithmes d'optimisation}
 \section{Motivation}
-Il existe une grande variété d'algorithmes permettant la minimisation de la fonction de coût en plus de la descente de gradient présentée précédemment. Ce chapitre aura pour but de présenter les plus populaires d'entre eux et d'en donner les principales caractéristiques. Nous les comparerons ensuite pour retenir les solutions les plus efficaces.
+Il existe une grande variété d'algorithmes permettant la minimisation de la fonction de coût autres que la descente de gradient présentée précédemment. Ce chapitre aura pour but de présenter les plus populaires d'entre eux et d'en donner les principales caractéristiques. Nous les comparerons ensuite pour retenir les solutions les plus efficaces.
+
+Dans cette partie, la fonction de coût sera notée $J$ et les poids $W$.
 
 \section{Descente de gradient et momentum}
 \begin{equation}
@@ -11,7 +13,7 @@ Les poids sont changés en fonction de la dérivée partielle de la fonction de 
 
 Cependant, le gradient de la fonction de coût change rapidement à chaque itération à cause de la diversité de chaque exemple d'apprentissage. On approchera alors le minimum par petits pas mais de façon désordonnée (en "zigzag"). En effet, si la direction moyenne obtenue sur plusieurs exemples d'apprentissage est la bonne ce n'est pas le cas si l'on ne prend en compte qu'un échantillon, celui-ci étant bruité. Cette approche consistant à calculer le gradient à chaque exemple est appelée \textit{descente de gradient stochastique}.
 
-Pour pallier ce problème, deux solutions sont possibles. On peut moyenner le gradient sur des batchs d'exemples de longueur fixée, au risque d'avoir de la redondance et de perdre en vitesse de calcul ou en espace mémoire. On parle alors de \textit{descente de gradient par batchs}. La \textit{descente de gradient par mini-batchs} consiste à prendre les avantages des deux méthodes, en trouvant un compromis sur la taille des batchs de sorte que le temps de calcul de chaque étape ne soit pas trop long mais que les pas soient suffisamment précis pour assurer une convergence efficace.
+Pour pallier ce problème, deux solutions sont possibles. On peut moyenner le gradient sur des batches d'exemples de longueur fixée, au risque d'avoir de la redondance et de perdre en vitesse de calcul ou en espace mémoire. On parle alors de \textit{descente de gradient par batches}. La \textit{descente de gradient par mini-batches} consiste à prendre les avantages des deux méthodes, en trouvant un compromis sur la taille des batchs de sorte que le temps de calcul de chaque étape ne soit pas trop long mais que les pas soient suffisamment précis pour assurer une convergence efficace.
 
 Il est également possible d'introduire un terme de momentum. Cette opération consiste à prendre en compte l'information des itérations précédentes pour savoir dans quelle direction il est préférable de progresser. En introduisant à cet effet un nouvel hyperparamètre $\mu$, on obtient alors les équations de mise à jour des poids ci-dessous.
 
