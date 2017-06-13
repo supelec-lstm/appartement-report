@@ -2,46 +2,44 @@
 
 \section{Introduction}
 
-La première application des LSTM à laquelle nous nous sommes intéressés est la génération de texte. Le principe est assez explicite: après apprentissage sur un ensemble de textes, on veut générer un nouvel extrait qui devra répondre aux règles du langage des textes de l'ensemble d'apprentissage.
+La première application des LSTM à laquelle nous nous sommes intéressés est la génération de séquences. Le principe est assez explicite: après apprentissage sur un ensemble de séquences, on veut pouvoir en générer une nouvelle qui répond aux mêmes règles grammaticales que les séquences de l'ensemble d'apprentissage.
  
 
 \section{Principe}
-On entraine un réseau à prédire la prochaine lettre d'une séquence, puis on lui fait générer des lettres selon cet apprentissage.
+On entraine un réseau à prédire le prochain caractère d'une séquence, puis on lui fait générer des lettres selon cet apprentissage.
 
 \subsection{Architecture du réseau}
 
 Le réseau retenu comporte 2 cellules LSTM dont les états cachés sont de taille 128.
-\\ Les caractères du texte sont convertis au format "One Hot Encoded": un caractère est représenté par un vecteur ne contenant que des 0 sauf un 1 à la ligne correspondant à sa nature dans un dictionnaire prédéfinis. La sortie du réseau est un softmax donnant une distribution de probabilité pour la lettre suivante.
+\\ Les caractères sont convertis au format "One Hot Encoded": un caractère est représenté par un vecteur ne contenant que des 0 sauf un 1 à la ligne correspondant à sa nature dans un dictionnaire prédéfinis. La sortie du réseau est un softmax donnant une distribution de probabilité pour le caractère suivant.
 \\ Afin de pouvoir fixer le nombre d'état caché indépendamment du format des entrées, il est nécessaire d'ajouter un étage feed forward d'adaptation en sortie du réseau. Ce réseau permettra de passer d'un vecteur de la taille de l'état caché à un vecteur de la taille de la sortie (qui sera aussi la taille de l'entrée dans notre cas).
 
 \subsection{Entrainement}
 
-Les lettres sont présentées en entrée par séquence de longueur fixée. La taille de la séquence correspond à la taille du dépliage que l'on décide de réaliser lors de l'application de l'algorithme BPTT. Cette longueur est donc choisie afin de ne pas produire un dépliage trop volumineux qui demanderait plus de mémoire que ne peut en fournir l'ordinateur.
+Les caractères sont présentés en entrée par séquence de longueur fixée. La taille de la séquence correspond à la taille du dépliage que l'on décide de réaliser lors de l'application de l'algorithme BPTT. Cette longueur est donc choisie afin de ne pas produire un dépliage trop volumineux qui demanderait plus de mémoire que ne peut en fournir l'ordinateur.
 \\ La figure \ref{LSTM_unfold} montre un tel dépliage sur un exemple simpliste.
 
-\begin{figure}
-\begin{center}
-\input{images/chapter7/LSTM_unfold.tex}
+\begin{figure}[H]
+\centering
+\resizebox{1\linewidth}{!}{\input{images/chapter7/LSTM_unfold.tex}}
 \caption{Exemple de dépliage de longueur 4 pour l'apprentissage de séquence}
 \label{LSTM_unfold}
-\end{center}
 \end{figure}
 
-Dans notre implémentation l'apprentissage est accéléré en traitant plusieurs séquences en parallèle. On met alors non plus un vecteur représentant un caractère en entrée mais une matrice représentant les caractères au temps $t$ de chacune des séquences dont on parallélise l'apprentissage. La diminution du temps de calcul provient de l'optimisation des calculs matriciels de Numpy.
+Dans notre implémentation l'apprentissage est accéléré en traitant plusieurs séquences en parallèle. On met alors non plus un vecteur représentant un caractère en entrée mais une matrice représentant les caractères au temps $t$ de chacune des séquences dont on parallélise l'apprentissage. La diminution du temps de calcul provient de l'optimisation des calculs matriciels sous Numpy.
 
 \subsection{Génération}
 
 
-Pour générer un extrait de texte, on donne en entrée du réseau au temps $t+1$ une lettre obtenue par tirage sur la distribution probabiliste obtenue en sortie du dernier étage au temps $t$.
-La première est choisie arbitrairement.
+Pour générer un extrait de texte, on donne en entrée du réseau au temps $t+1$ un caractère obtenue par tirage sur la distribution probabiliste obtenue en sortie du dernier étage au temps $t$.
+Le premier caractère est choisie arbitrairement parmis l'ensemble des caractères de l'ensemble d'apprentissage.
 \\La figure \ref{LSTM_generate} développe un exemple simpliste de génération.
 
-\begin{figure}
-\begin{center}
-\input{images/chapter7/LSTM_generate.tex}
+\begin{figure}[H]
+\centering
+\resizebox{1\linewidth}{!}{\input{images/chapter7/LSTM_generate.tex}}
 \caption{Exemple de génération d'un extrait de longueur 3}
 \label{LSTM_generate}
-\end{center}
 \end{figure}
 
 \section{Génération à partir d'œuvres de Shakespeare}
@@ -54,12 +52,11 @@ On entraine le réseau par batchs de 50 séquences de 50 caractères.
 \\Les résultats obtenus avec l'algorithme classique de descente du gradient n'étaient pas satisfaisants et nous ont poussé à implémenter d'autres algorithmes d'optimisation qui sont décris au chapitre 8. On utilise alors RMSProp qui donne des résultats bien plus probants bien plus rapidement tel que le montre la figure \ref{RMSProp_vs_SGD}.
 
 
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.5]{images/chapter7/RMSProp_vs_SGD.png}
+\begin{figure}[H]
+\centering
+\resizebox{1\linewidth}{!}{\includegraphics{images/chapter7/RMSProp_vs_SGD.png}}
 \caption{Courbe du coût lors de l'entrainement selon l'algorithme d'optimisation utilisé}
 \label{RMSProp_vs_SGD}
-\end{center}
 \end{figure}
 \medskip
 
@@ -78,18 +75,19 @@ LADY ANNE:\\
 Sir, af you have fellow’s their eyes live?
 \medbreak
 Ces résultats, bien que durs à évaluer sont jugés satisfaisants étant donné leur ressemblance avec l'anglais shakespearien et leur structure de pièce de théâtre.
-\\Il est intéressante de noter que certaines chaines de caractères comme les noms des personnages suivis de deux points et d'un retour à la ligne est copiée conformément exactement sur l'ensemble d'apprentissage, et dépend même de la pièce qui a été apprise en dernier.
+\\Il est intéressante de noter que certaines chaines de caractères comme les noms des personnages suivis de deux points et d'un retour à la ligne est copiée exactement sur l'ensemble d'apprentissage, et dépendent même de la pièce qui a été apprise en dernier. Ici "Third Servant" et "Second Murderer" sont des personnages du Roi Lear.
+
 \subsection{tests complémentaires sur la forget gate}
+
 Le problème de la génération de texte a été l'occasion de questionner l'utilité de la forget gate. Cette partie de la cellule LSTM ne figurait que dans une partie des sources décrivant la composition de la cellule.
 La question est de savoir si retirer cette porte diminue notablement l'efficacité du réseau, et ce même en ajoutant des neurones à la couche cachée pour garder un nombre de neurone constant par cellule.
 \\ Le tracé de la courbe de coût lors de l'apprentissage (figure \ref{forget_gate} montre que la forget gate apporte effectivement un gain en performances.
 
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.5]{images/chapter7/forget_gate.png}
+\begin{figure}[H]
+\centering
+\adjustbox{max width=\linewidth}{\includegraphics{images/chapter7/forget_gate.png}}
 \caption{Courbe du coût lors de l'entrainement avec avec ou sans forget gate}
 \label{forget_gate}
-\end{center}
 \end{figure}
 
 
