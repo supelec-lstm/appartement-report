@@ -2,7 +2,7 @@
 
 \section{Motivations}
 
-Nous avons vu précédemment que l'architecture du réseau de neurones peut être lourde autant du point de vue modélisation que du point de vue calcul. Pour motiver l'apparition des graphes de calcul prenons l'exemple d'un réseau de neurones à $m$ entrées, une couche cachée de $n$ neurones et $p$ sorties. Tous les neurones ont pour fonction d'activation une sigmoïde $\sigma$. Un tel réseau est représenté sur la figure \ref{reseau_3_5_3}.
+Nous avons vu précédemment que l'architecture du réseau de neurones peut être lourde autant du point de vue modélisation que du point de vue calculatoire. Pour motiver l'apparition des graphes de calculs prenons l'exemple d'un réseau de neurones à $m$ entrées, une couche cachée de $n$ neurones et $p$ sorties. Tous les neurones ont pour fonction d'activation une sigmoïde $\sigma$. Un tel réseau est représenté sur la figure \ref{reseau_3_5_3}.
 
 \begin{figure}
 \begin{center}
@@ -32,14 +32,14 @@ On aurait donc envie de s'affranchir de la structure du neurone pour seulement m
 \section{Définitions}
 
 \begin{definition}[Graphe de calcul]
-Un graphe de calcul est un graphe représentant une fonction mathématique. Un n\oe{}ud de ce graphe représente soit une variable, des poids ou une opération mathématique. Formellement, nous noterons $\mathcal{G}(V, A, V_{var}, (V_{op}, f), (V_{poids}, \theta))$ le graphe $\mathcal{G}$ dont les n\oe{}uds sont $V$, les arêtes $A$, $V_{var} \subset V$ les n\oe{}uds réprésentant une variable, $V_{op} \subset V$ ceux représentant une opération et $f$ les opérations en question, et $V_{poids} \subset V$ ceux représentant des poids et $\theta$ les poids associés.
+Un graphe de calcul est un graphe représentant une fonction mathématique. Un n\oe{}ud de ce graphe représente une variable, des poids ou une opération mathématique. Formellement, nous noterons $\mathcal{G}(V, A, V_{var}, (V_{op}, f), (V_{poids}, \theta))$ le graphe $\mathcal{G}$ dont les n\oe{}uds sont $V$, les arêtes $A$, $V_{var} \subset V$ les n\oe{}uds réprésentant une variable, $V_{op} \subset V$ ceux représentant une opération et $f$ les opérations en question, et $V_{poids} \subset V$ ceux représentant des poids et $\theta$ les poids associés.
 \end{definition}
 
 Dans cette définition, nous considérons les variables comme les arguments du graphe de calculs. En ce qui concerne, les réseaux de neurones, les entrées seront un n\oe{}ud représentant une variable. Les poids sont les paramètres de la fonction. Ce seront les poids des neurones par exemple. Nous n'imposons pour l'instant aucune limite aux opérations mathématiques pouvant être effectuées au sein des graphes de calculs.
 
 Dans le graphe de calculs de la figure \ref{reseau_3_5_3}, le n\oe{}ud $x$ est une variable, les n\oe{}uds $W_1$ et $W_2$ sont des poids et les deux n\oe{}uds $\sigma$ représente l'opération sigmoïde appliquée terme à terme. Nous remarquerons que la sortie $y$ n'est pas explicitée par un n\oe{}ud. 
 
-Les graphes de calculs offrent une très grande liberté. Il est possible de représenter avec ceux-ci une classe de fonctions bien plus grandes qu'avec des réseaux de neurones classiques.
+Les graphes de calculs offrent une très grande liberté. Il est possible de représenter avec ceux-ci une classe de fonctions bien plus grande qu'avec des réseaux de neurones classiques.
 
 Écrivons dès maintenant, l'algorithme de propagation. Afin de pouvoir être concis, nous devons ajouter des notations. Nous noterons l'arc allant de la sortie $k$ du n\oe{}ud $n_i$ vers l'entrée $l$ du n\oe{}ud $n_j$ comme un quadruplet $(n_i, k, n_j, l)$. De plus, nous noterons $in(n)$ le nombre d'entrées du n\oe{}ud $n$ et $out(n)$ le nombres de sorties du n\oe{}ud $n$.
 
@@ -78,7 +78,7 @@ Nous avons ainsi modéliser nos réseaux de manière plus efficace. Il reste cep
 
 \section{Dérivation automatique}
 
-Afin de réaliser cela, nos n\oe{}uds représentant des opérations mathématiques ne seront pas seulement responsable de calculer une sortie mais aussi de propager le gradient. En effet prenons un n\oe{}ud représent une opération mathématique $f$ à $m$ entrées $x_1, ..., x_m$ et à $n$ sorties $y_1, ..., y_n$. La règle de la chaine, nous permet d'exprimer la dérivée du coût par rapport aux entrées en fonction du coût par rapport aux sorties du n\oe{}ud. En effet, on a :
+Afin de réaliser cela, nos n\oe{}uds représentant des opérations mathématiques ne seront pas seulement responsable de calculer une sortie mais aussi de propager le gradient. En effet prenons un n\oe{}ud représentant une opération mathématique $f$ à $m$ entrées $x_1, ..., x_m$ et à $n$ sorties $y_1, ..., y_n$. La règle de la chaine, nous permet d'exprimer la dérivée du coût par rapport aux entrées en fonction du coût par rapport aux sorties du n\oe{}ud. En effet, on a :
 \begin{equation}
 \forall i \in \{1, ...,  m\}, \frac{\partial E}{\partial x_i} = \sum_{j=1}^{n}{\frac{\partial y_j}{\partial x_i}\frac{\partial E}{\partial y_j}} = \sum_{j=1}^{n}{\frac{\partial f_j}{\partial x_i}(x)\frac{\partial E}{\partial y_j}}
 \label{retropropagation_graphe}
@@ -86,7 +86,7 @@ Afin de réaliser cela, nos n\oe{}uds représentant des opérations mathématiqu
 
 Rappelons que si $x_i \in \mathbb{R}^p$ et $y_j \in \mathbb{R}^q$ alors $\frac{\partial E}{\partial y_j} \in \mathbb{R}^q$ et $\frac{\partial y_j}{\partial x_i} = (\frac{\partial y_{j,l}}{\partial x_{i, k}})_{k, l} \in \mathbb{R}^{p \times q}$.
 
-La formule \ref{retropropagation_graphe} nous permet de décrire un algorithme de rétropropagation du gradient très similaire à celui des réseaux de neurones :
+La formule \ref{retropropagation_graphe} nous permet de décrire un algorithme de rétropropagation du gradient très similaire à celui des réseaux de neurones.
 
 \begin{algorithm} 
 \begin{algorithmic}
@@ -130,7 +130,7 @@ Maintenant que les graphes de calculs ont été présentés de manière théoriq
 
 \subsection{La classe Node}
 
-Un n\oe{}ud aura deux missions : calculer sa sortie et rétropropager le gradient. Nous représentions ces deux opérations sur la figure \ref{node}.
+Un n\oe{}ud aura deux missions : calculer sa sortie et rétropropager le gradient. Nous représentons ces deux opérations sur la figure \ref{node}.
 
 \begin{figure}
 \begin{center}
@@ -145,14 +145,14 @@ Un n\oe{}ud aura deux missions : calculer sa sortie et rétropropager le gradien
 Un n\oe{}ud a deux méthodes principales :
 \begin{itemize}
 \item \texttt{get\_output} : utilisée lors la propagation, le n\oe{}ud demande ses entrées à ses parents puis calcule sa sortie et la mémoïse ;
-\item \texttt{get\_gradient} : utilisée lors de la rétropropagation, n\oe{}ud demande à chacun de ses enfants le gradient par rapport à la sortie qu'ils utilisent puis s'en sert pour calculer le gradient par rapport à ses entrées et la mémoïse.
+\item \texttt{get\_gradient} : utilisée lors de la rétropropagation, le n\oe{}ud demande à chacun de ses enfants le gradient par rapport à la sortie qu'ils utilisent puis s'en sert pour calculer le gradient par rapport à ses entrées et le mémoïse.
 \end{itemize}
 
 \subsection{Les variables}
 
 Les n\oe{}uds variables sont des n\oe{}uds auxquels il est possible d'assigner une valeur via la méthode \texttt{set\_value}. Il renvoie ensuite cette valeur lorsqu'un de ses enfants lui demande sa sortie.
 
-Ils sont utilisés dans deux cas principaux. Le premier est évidemment les entrées du graphe. Le deuxième cas est plus subtile. Nous avons choisi comme pour la première implémentation avec des neurones d'inclure la fonction de coût dans nos graphe de calculs. Or cette fonction de coût prend comme argument la sortie du réseau $\hat{y}$, mais aussi la sortie attendue $y$. On utilise donc des n\oe{}uds variables pour spécifier la sortie attendue.
+Ils sont utilisés dans deux cas principaux. Le premier est évidemment les entrées du graphe. Le deuxième cas est plus subtile. Nous avons choisi comme pour la première implémentation avec des neurones d'inclure la fonction de coût dans nos graphes de calculs. Or cette fonction de coût prend comme argument la sortie du réseau $\hat{y}$, mais aussi la sortie attendue $y$. On utilise donc des n\oe{}uds variables pour spécifier la sortie attendue.
 
 \subsection{Les poids}
 
@@ -452,7 +452,7 @@ Donc si $i \in \{1, ..., m\}, j \in \{1, ..., n\}, x_{1_{i, j}}$ intervient seul
 $$
 \frac{\partial E}{\partial x_{1_{i, j}}} = \sum_{k = 1}^{p}{\frac{\partial E}{\partial y_{i, k}}\frac{\partial y_{i, k}}{\partial x_{1_{i, j}}}} = \sum_{k = 1}^{p}{\frac{\partial E}{\partial y_{i, k}}x_{2_{j, k}}} 
 $$ 
-On reconnait la l'expression du produit matriciel entre $\frac{\partial E}{\partial y}$ et $x_2^T$, d'où :
+On reconnait là l'expression du produit matriciel entre $\frac{\partial E}{\partial y}$ et $x_2^T$, d'où :
 $$
 \frac{\partial E}{\partial x_1} = \frac{\partial E}{\partial y} x_2^T
 $$
@@ -557,10 +557,10 @@ Afin de résumer, les propos de cette partie, nous présentons le diagramme de c
 
 \section{Conclusion}
 
-Nous avons décrit les graphes de calculs, donnés les algorithmes permenttant de calculer efficacement la sortie de celui-ci et de calculer la dérivée du coût par rapport aux paramètres. Ensuite, nous sommes rentrés davantage dans les détails en donnant les formules de propagation et de rétropropagation pour les n\oe{}uds les plus utiles dans le cadre de l'apprentissage automatique. Finalement nous avons décrit notre implémentation en donnant le diagramme de classes.
+Nous avons décrit les graphes de calculs, donnés les algorithmes permettant de calculer efficacement la sortie de celui-ci et de calculer la dérivée du coût par rapport aux paramètres. Ensuite, nous sommes rentrés davantage dans les détails en donnant les formules de propagation et de rétropropagation pour les n\oe{}uds les plus utiles dans le cadre de l'apprentissage automatique. Finalement nous avons décrit notre implémentation en donnant le diagramme de classes.
 
 Dans cette partie, nous avons développé un outil bien plus puissant que les réseaux de neurones. En effet, nous avons donné un cadre et une méthode permettant d'optimiser théoriquement n'importe quelle fonction pour peu que nous puissions la décomposer en opérations dont nous sachons calculer la dérivée. Cette grande puissance théorique vient de plus avec une grande facilité d'implémentation et d'utilisation.
 
-Nous verrons dans la partie suivante que notre implémentation graphes de calculs est bien plus performante que notre précédente modélisation en neurones. En outre, la modularité des graphes de calculs, nous permettra d'exécuter de nombreux tests sur l'architecture et les paramètres des réseaux de neurones, ce que nous détaillerons dans la partie suivante.
+Nous verrons dans la partie suivante que notre implémentation avec des graphes de calculs est bien plus performante que notre précédente modélisation en neurones. En outre, la modularité des graphes de calculs, nous permettra d'exécuter de nombreux tests sur l'architecture et les paramètres des réseaux de neurones, ce que nous détaillerons dans la partie suivante.
 
 Finalement, comme nous le verrons, cette implémentation restera valide pour la modélisation des réseaux de neurones récurrents.
