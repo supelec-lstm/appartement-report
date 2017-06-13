@@ -1,41 +1,49 @@
-\chapter{Application : génération de texte}
+\chapter{Application : génération de séquences}
 
 \label{chapter7}
 
 \section{Introduction}
 
-La première application des LSTM à laquelle nous nous sommes intéressés est la génération de séquences. Le principe est assez explicite: après apprentissage sur un ensemble de séquences, on veut pouvoir en générer une nouvelle qui répond aux mêmes règles grammaticales que les séquences de l'ensemble d'apprentissage.
+La première application des LSTM à laquelle nous nous sommes intéressés est la génération de séquences. Le principe est assez explicite: après apprentissage sur un ensemble de séquences, on veut pouvoir en générer une nouvelle qui répond aux mêmes règles que les séquences de l'ensemble d'apprentissage.
  
 
 \section{Principe}
-On entraine un réseau à prédire le prochain caractère d'une séquence, puis on lui fait générer des lettres selon cet apprentissage.
+On entraîne un réseau à prédire le prochain caractère d'une séquence grâce à un ensemble d'apprentissage. Puis, on lui fait générer une suite de caractères basée sur cet apprentissage.
 
 \subsection{Architecture du réseau}
 
 Le réseau retenu comporte 2 cellules LSTM dont les états cachés sont de taille 128.
-\\ Les caractères sont convertis au format "One Hot Encoded": un caractère est représenté par un vecteur ne contenant que des 0 sauf un 1 à la ligne correspondant à sa nature dans un dictionnaire prédéfinis. La sortie du réseau est un softmax donnant une distribution de probabilité pour le caractère suivant.
-\\ Afin de pouvoir fixer le nombre d'état caché indépendamment du format des entrées, il est nécessaire d'ajouter un étage feed forward d'adaptation en sortie du réseau. Ce réseau permettra de passer d'un vecteur de la taille de l'état caché à un vecteur de la taille de la sortie (qui sera aussi la taille de l'entrée dans notre cas).
+\\ Les caractères sont convertis au format "One Hot Encoded": un caractère est représenté par un vecteur ne contenant que des 0 sauf un 1 à la ligne correspondant à sa nature dans un dictionnaire prédéfini. La sortie du réseau est un softmax donnant une distribution de probabilité pour le caractère suivant.
+\\ Afin de pouvoir fixer le nombre d'états cachés indépendamment du format des entrées, il est nécessaire d'ajouter un étage feed forward d'adaptation en sortie du réseau. Ce réseau permettra de passer d'un vecteur de la taille de l'état caché à un vecteur de la taille de la sortie (qui sera aussi la taille de l'entrée dans notre cas).
+
+\begin{figure}[h!]
+\centering
+\resizebox{0.7\linewidth}{!}{\includegraphics{images/chapter7/LSTM_augmented.png}}
+\caption{Architecture utilisée pour la génération de séquences}
+\label{LSTM_augmented}
+\end{figure}
+
 
 \subsection{Entrainement}
 
-Les caractères sont présentés en entrée par séquence de longueur fixée. La taille de la séquence correspond à la taille du dépliage que l'on décide de réaliser lors de l'application de l'algorithme BPTT. Cette longueur est donc choisie afin de ne pas produire un dépliage trop volumineux qui demanderait plus de mémoire que ne peut en fournir l'ordinateur.
+Les caractères sont présentés en entrée par séquences de longueur fixée. La taille de la séquence correspond à la taille du dépliage que l'on décide de réaliser lors de l'application de l'algorithme BPTT. Cette longueur est donc choisie afin de ne pas produire un dépliage trop volumineux qui demanderait plus de mémoire que ne peut en fournir l'ordinateur.
 \\ La figure \ref{LSTM_unfold} montre un tel dépliage sur un exemple simpliste.
 
 \begin{figure}[H]
 \centering
 \resizebox{1\linewidth}{!}{\input{images/chapter7/LSTM_unfold.tex}}
-\caption{Exemple de dépliage de longueur 4 pour l'apprentissage de séquence}
+\caption{Exemple de dépliage de longueur 4 pour l'apprentissage de séquences}
 \label{LSTM_unfold}
 \end{figure}
 
-Dans notre implémentation l'apprentissage est accéléré en traitant plusieurs séquences en parallèle. On met alors non plus un vecteur représentant un caractère en entrée mais une matrice représentant les caractères au temps $t$ de chacune des séquences dont on parallélise l'apprentissage. La diminution du temps de calcul provient de l'optimisation des calculs matriciels sous Numpy.
+Dans notre implémentation l'apprentissage est accéléré en traitant plusieurs séquences en parallèle. On met alors non plus un vecteur représentant un caractère en entrée mais une matrice représentant les caractères au temps $t$ de chacune des séquences dont on parallélise l'apprentissage. La diminution du temps de calcul provient de l'optimisation des calculs matriciels sous \texttt{numpy}.
 
 \subsection{Génération}
 
 
-Pour générer un extrait de texte, on donne en entrée du réseau au temps $t+1$ un caractère obtenue par tirage sur la distribution probabiliste obtenue en sortie du dernier étage au temps $t$.
-Le premier caractère est choisie arbitrairement parmis l'ensemble des caractères de l'ensemble d'apprentissage.
-\\La figure \ref{LSTM_generate} développe un exemple simpliste de génération.
+Pour générer une séquence, on donne en entrée du réseau au temps $t+1$ un caractère obtenue par tirage sur la distribution probabiliste obtenue en sortie du dernier étage au temps $t$.
+Le premier caractère est choisi arbitrairement parmi l'ensemble des caractères de l'ensemble d'apprentissage.
+\\La figure \ref{LSTM_generate} illustre un exemple simpliste de génération.
 
 \begin{figure}[H]
 \centering
@@ -45,13 +53,13 @@ Le premier caractère est choisie arbitrairement parmis l'ensemble des caractèr
 \end{figure}
 
 \section{Génération à partir d'œuvres de Shakespeare}
-L'objectif de départ était de générer des textes, l'ensemble d'apprentissage type pour cet exercice est l'ensemble des pièces de théâtre de shakespeare. Cet ensemble possède 3 avantages majeurs. Tout d'abord la langue anglaise possède moins de caractères distincts que le français. Ensuite ils possèdent tous la structure de dialogue $nom du personnage : texte$, qui est facilement repérable et constituera donc un critère d'évaluation du résultat. Enfin l'anglais tel qui l'est écris par shakespeare est très reconnaissable.
-L'ensemble de textes ainsi constitué comporte 40 000 lignes de texte.
+L'objectif est de générer des textes, l'ensemble d'apprentissage type pour cet exercice est l'ensemble des pièces de théâtre de Shakespeare. Cet ensemble possède trois avantages majeurs. Tout d'abord la langue anglaise possède moins de caractères distincts que le français, ce dernier disposant de caractères accentués. Ensuite, ces textes présentent tous la structure de dialogue $nom du personnage : texte$, qui est facilement repérable et constituera donc un critère d'évaluation du résultat. Enfin l'anglais tel qu'il est écrit par Shakespeare est facilement reconnaissable.
+L'ensemble de textes ainsi constitué comporte 40 000 lignes.
 
 \subsection{Résultats}
 
-On entraine le réseau par batchs de 50 séquences de 50 caractères.
-\\Les résultats obtenus avec l'algorithme classique de descente du gradient n'étaient pas satisfaisants et nous ont poussé à implémenter d'autres algorithmes d'optimisation qui sont décris au chapitre 8. On utilise alors RMSProp qui donne des résultats bien plus probants bien plus rapidement tel que le montre la figure \ref{RMSProp_vs_SGD}.
+On entraîne le réseau par batches de 50 séquences de 50 caractères.
+\\On utilise l'algorithme RMSProp décrit dans le \autoref{chap:Algorithmes d'optimisation} qui donne des résultats bien plus rapidement que la descente de gradient classique. Cela est illustré sur la figure \ref{RMSProp_vs_SGD}.
 
 
 \begin{figure}[H]
@@ -63,32 +71,40 @@ On entraine le réseau par batchs de 50 séquences de 50 caractères.
 \medskip
 
 Voici un exemple de texte généré:
-\medbreak
-Third Servan:\\
-Of many bald with him fire, read now?\\
 
-Second Murderer:\\
-Out! where he wal’d apt thou, myself!\\
-O brother’s maliss and trunks and Caubble subject.\\
+\medbreak
+
+\begin{figure}[h!]
+\begin{verbatim}
+Third Servan:
+Of many bald with him fire, read now?
+
+Second Murderer:
+Out! where he wal’d apt thou, myself!
+O brother’s maliss and trunks and Caubble subject.
 Now i’ the fill in thy noble devart wagains to argon me
-thy commanded?\\
+thy commanded?
 
-LADY ANNE:\\
+LADY ANNE:
 Sir, af you have fellow’s their eyes live?
-\medbreak
-Ces résultats, bien que durs à évaluer sont jugés satisfaisants étant donné leur ressemblance avec l'anglais shakespearien et leur structure de pièce de théâtre.
-\\Il est intéressante de noter que certaines chaines de caractères comme les noms des personnages suivis de deux points et d'un retour à la ligne est copiée exactement sur l'ensemble d'apprentissage, et dépendent même de la pièce qui a été apprise en dernier. Ici "Third Servant" et "Second Murderer" sont des personnages du Roi Lear.
+\end{verbatim}
+\caption{Exemple d'un texte généré}
+\end{figure}
 
-\subsection{tests complémentaires sur la forget gate}
+
+Ces résultats, bien que difficiles à évaluer sont jugés satisfaisants étant donné leur ressemblance avec l'anglais shakespearien et leur structure de pièce de théâtre.
+\\Il est intéressant de noter que certaines chaînes de caractères, comme les noms des personnages suivis de deux points et d'un retour à la ligne, sont copiées exactement sur l'ensemble d'apprentissage. Elles dépendent même de la pièce qui a été apprise en dernier. Ici "Third Servant" et "Second Murderer" sont des personnages du \textit{Roi Lear}.
+
+\subsection{Tests complémentaires sur la forget gate}
 
 Le problème de la génération de texte a été l'occasion de questionner l'utilité de la forget gate. Cette partie de la cellule LSTM ne figurait que dans une partie des sources décrivant la composition de la cellule.
 La question est de savoir si retirer cette porte diminue notablement l'efficacité du réseau, et ce même en ajoutant des neurones à la couche cachée pour garder un nombre de neurone constant par cellule.
-\\ Le tracé de la courbe de coût lors de l'apprentissage (figure \ref{forget_gate} montre que la forget gate apporte effectivement un gain en performances.
+\\ Le tracé de la courbe de coût lors de l'apprentissage (figure \ref{forget_gate}) montre que la forget gate apporte effectivement un gain en performances.
 
 \begin{figure}[H]
 \centering
 \adjustbox{max width=\linewidth}{\includegraphics{images/chapter7/forget_gate.png}}
-\caption{Courbe du coût lors de l'entrainement avec avec ou sans forget gate}
+\caption{Courbe du coût lors de l'entraînement avec avec ou sans forget gate}
 \label{forget_gate}
 \end{figure}
 

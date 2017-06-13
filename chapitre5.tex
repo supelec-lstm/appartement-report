@@ -2,17 +2,17 @@
 \label{chap:Réseaux de neurones récurrents}
 \section{Motivation}
 
-Nous avons pu voir que les réseaux feedforward peuvent être utilisés afin d'appendre à prédire la sortie voulue en fonction de l'entrée du réseau. 
+Nous avons pu voir que les réseaux feedforward peuvent être utilisés afin d'apprendre à prédire la sortie voulue en fonction de l'entrée du réseau. 
 
-Néanmoins, ces réseaux sont limités à des entrées et des sorties de tailles fixes. De plus il ne peuvent gérer des réseaux présentant des cycles. On utilise alors des réseaux récurrents qui permettent un traitement plus efficace des séquences de données. On pourra ainsi faire de la prédiction et de la génération de séquence.
+Néanmoins, ces réseaux se limitent à des entrées et des sorties de tailles fixes. De plus, ils ne peuvent gérer des réseaux présentant des cycles. On utilise alors des réseaux récurrents qui permettent un traitement plus efficace des séquences de données. On pourra ainsi faire de la prédiction et de la génération de séquences.
 
-Dans un premier, nous verrons comment modéliser ces réseaux récurrents. Puis nous nous intéresserons à deux algorithmes d'optimisation permettant l'apprentissage des réseaux récurrents : real time recurrent learning (RTRL) et backpropagation through time (BPTT).
+Dans un premier temps, nous verrons comment modéliser ces réseaux récurrents. Puis, nous nous intéresserons à deux algorithmes d'optimisation permettant l'apprentissage des réseaux récurrents : Real Time Recurrent Learning (RTRL) et Backpropagation Through Time (BPTT).
 
 \section{Dépliage}
 
 Nous avons dit précédemment qu'un réseau de neurones récurrent est un réseau possédant des cycles. Néanmoins, il est difficile d'imaginer que la valeur de sortie d'un neurone au temps $t$ dépende de la sortie de ce même neurone au temps $t$. Pour résoudre ce problème, nous allons ajouter une dimension temporelle à nos réseaux et permettre aux neurones au temps $t$ de dépendre des valeurs d'autres neurones au temps $t-1$.
 
-Afin de mettre en évidence cette dépendance temporelle sur nos graphes, les arêtes reliant la sortie d'un neurone au temps $t-1$ à un neurone au temps $t$ vont être annotées par un carré comme sur la figure \ref{arete_retard}. On les appelera arête "retard".
+Afin de mettre en évidence cette dépendance temporelle sur nos graphes, les arêtes reliant la sortie d'un neurone au temps $t-1$ à un neurone au temps $t$ vont être annotées par un carré comme sur la figure \ref{arete_retard}. On les appellera arête "retard".
 
 \begin{figure}
 \begin{center}
@@ -32,11 +32,11 @@ On peut maintenant remarquer que pour une séquence $x_1, ..., x_n$ le réseau r
 \end{center}
 \end{figure}
 
-Le processus de passage d'un réseau récurrent à un réseau feedforward s'appelle dépliage.
+Le passage d'un réseau récurrent à un réseau feedforward s'appelle dépliage.
 
-Une fois le réseau déplié obtenu, on peut utiliser l'algorithme de propagation classique pour les graphes de calculs afin de calculer la sortie du réseau récurrent.
+Une fois le réseau déplié, on peut utiliser l'algorithme de propagation classique pour les graphes de calculs afin de calculer la sortie du réseau récurrent.
 
-Nous avons utilisé trois méthodes pour générer des réseaux dépliés. La première prend en entrée un réseau récurrent avec des arêtes retards et obtient le dépliage à partir de celui-ci.
+Nous avons utilisé trois méthodes pour générer des réseaux dépliés. La première prend en entrée un réseau récurrent avec des arêtes retard et obtient le dépliage à partir de celui-ci.
 
 La seconde prend en entrée un \textit{layer}, représenté figure \ref{layer}, c'est-à-dire le sous-graphe qui va être copié à chaque pas de temps et le clone autant de fois qu'il le faut.
 
@@ -48,15 +48,15 @@ La seconde prend en entrée un \textit{layer}, représenté figure \ref{layer}, 
 \end{center}
 \end{figure}
 
-Enfin la dernière méthode est de ne pas utiliser d'algorithme "général" permettant de passer d'un graphe récurrent à un graphe acyclique. Mais plutôt d'écrire pour chaque architecture de réseau une fonction dépliant ce réseau. Une telle fonction contiendra principalement une boucle créant les n\oe{}uds nécessaires pour chaque temps.
+Enfin la dernière méthode est de ne pas utiliser d'algorithme "général" permettant de passer d'un graphe récurrent à un graphe acyclique mais plutôt d'écrire pour chaque architecture de réseau une fonction dépliant ce réseau. Une telle fonction contiendra principalement une boucle créant les n\oe{}uds nécessaires pour chaque temps.
 
 Devant la diversité des architectures des réseaux récurrents, la dernière méthode est la plus sensée et la plus pratique. Elle offre une liberté totale quant à l'architecture du graphe tout en étant relativement simple.
 
 \section{BPTT}
 
-Contrairement, à ce que nous avons fait lors du projet, nous allons d'abord présenter l'algorithme \textit{backpropagation through time} (BPTT) car il s'agit d'une simple généralisation de la rétropropagation déjà présentée pour les réseaux feedforward.
+Contrairement à ce que nous avons fait lors du projet, nous allons d'abord présenter l'algorithme \textit{backpropagation through time} (BPTT) car il s'agit d'une simple généralisation de la rétropropagation déjà présentée pour les réseaux feedforward.
 
-L'algorithme consiste en deux étapes :
+L'algorithme comprend deux étapes :
 \begin{enumerate}
 \item Déplier le réseau récurrent pour avoir un réseau feedforward.
 \item Appliquer l'algorithme de rétropropagation à ce réseau feedforward.
@@ -64,20 +64,20 @@ L'algorithme consiste en deux étapes :
 
 La seule difficulté conceptuelle réside donc dans le dépliage.
 
-En pratique, le dépliage est un processus coûteux en temps. Lors de l'apprentissage, on évite donc de déplier un graphe pour chaque exemple d'apprentissage. Pour cela, si cela est possible, on fixe la taille des séquences d'entrée lors de l'apprentissage. Nous pourrons ainsi utiliser le même réseau pour tous les exemples. En outre, comme tous les exemples auront la même taille, nous pourrons les placer dans une matrice comme pour les réseaux feedforward et passer un batch d'exemples en même temps ce qui permet d'accélérer encore les calculs en utilisant pleinement la puissance de \texttt{numpy}.
+En pratique, le dépliage est un processus coûteux en temps. Lors de l'apprentissage, on évite donc de déplier un graphe pour chaque exemple d'apprentissage. Pour cela, on fixe, si possible, la taille des séquences d'entrée lors de l'apprentissage. Nous pourrons ainsi utiliser le même réseau pour tous les exemples. En outre, comme tous les exemples auront la même taille, nous pourrons les placer dans une matrice comme pour les réseaux feedforward et passer un batch d'exemples en même temps ce qui permet d'accélérer encore les calculs en utilisant pleinement la puissance de \texttt{numpy}.
 
 \section{RTRL}
 
 \label{RTRL_section}
 
-Détaillons maintenant l'algorithme RTRL qui a une philosophique complètement différente. Au lieu de rétropropager le gradient, nous allons le propager.
+Détaillons maintenant l'algorithme RTRL qui a une philosophie complètement différente. Au lieu de rétropropager le gradient, nous allons le propager.
 
-Nous nous plaçons dans le cas particulier où le réseau est fully connected comme sur la figure \ref{fully_connected_recurrent_network}. 
+Nous nous plaçons dans le cas particulier où le réseau est fully-connected comme sur la figure \ref{fully_connected_recurrent_network}. 
 
 \begin{figure}
 \begin{center}
 \input{images/chapter5/fully_connected_recurrent_network.tex}
-\caption{Réseau de neurones récurrent fully connected avec 2 entrées et 3 autres neurones.}
+\caption{Réseau de neurones récurrent fully-connected avec 2 entrées et 3 autres neurones.}
 \label{fully_connected_recurrent_network}
 \end{center}
 \end{figure}
@@ -175,15 +175,15 @@ Utilisons les formules \ref{E_t} et \ref{y_k_recurrence} pour écrire l'algorith
 \label{RTRL}
 \end{algorithm}
 
-On parle d'apprentissage en temps réel car il est possible d'apprendre après élément de la séquence $x_1, ..., x_n$. Ou bien d'accumuler le gradient sur toute la séquence $x_1, ..., x_n$ comme présenté dans l'algorithme \ref{RTRL}. Nos expériences ont montré qu'il était mieux d'accumuler le gradient sur une séquence en entière voire sur des batches de plusieurs séquences.
+On parle d'apprentissage en temps réel car il est possible d'apprendre après chaque élément de la séquence $x_1, ..., x_n$. On peut également accumuler le gradient sur toute la séquence $x_1, ..., x_n$ comme présenté dans l'algorithme \ref{RTRL}. Nos expériences ont montré qu'il était mieux d'accumuler le gradient sur une séquence entière voire sur des batches de plusieurs séquences.
 
 \section{Comparaison des deux algorithmes}
 
-La première remarque à faire est que si on prend le réseau décrit dans la section précédente et que l'on accumule le gradient sur une séquence alors les algorithmes RTRL et BPTT calculent la même quantité : $\frac{\partial E}{\partial w}$.
+La première remarque à faire est que, si on prend le réseau décrit dans la section précédente et que l'on accumule le gradient sur une séquence, alors les algorithmes RTRL et BPTT calculent la même quantité : $\frac{\partial E}{\partial w}$.
 
 On pourra vérifier en pratique que les deux algorithmes calculent bien la même quantité dans la section suivante où les résultats sont identiques.
 
-Intéressons, nous maintenant aux complexités de ces deux algorithmes. Le tableau ci-dessous résume leurs complexités en espace et en temps où l'on considère un réseau à $n$ neurones et une séquence taille $L$.
+Intéressons-nous maintenant aux complexités de ces deux algorithmes. Le tableau ci-dessous résume leurs complexités en espace et en temps où l'on considère un réseau à $n$ neurones et une séquence de taille $L$.
 
 \begin{center}
 \begin{tabular}{|c|c|c|}
@@ -199,7 +199,7 @@ BPTT & $O(Ln^2)$ & $O(Ln)$ \\
 
 Justifions rapidement ces résultats. Pour RTRL :
 \begin{itemize}
-\item Complexité en space : besoin de stocker un tableau $p$ de dimension $3$ d'où un coût en $O(n^3)$.
+\item Complexité en espace : besoin de stocker un tableau $p$ de dimension $3$ d'où un coût en $O(n^3)$.
 \item Complexité en temps : la mise à jour de chaque élément du tableau nécessite le calcul d'une somme de $n$ termes d'où un coût en $O(n^4)$.
 \end{itemize}
 
@@ -215,7 +215,7 @@ L'algorithme BPTT a donc de nombreux avantages par rapport à RTRL :
 \begin{itemize}
 \item conceptuellement, il s'agit de la continuité naturelle de la rétropropagation des réseaux feedforward pour les réseaux récurrents ;
 \item il possède une meilleure complexité temporelle et spatiale que RTRL ;
-\item il peut s'appliquer à n'importe quelle architecture de réseaux récurrents, et donc en particulier à l'architecture LSTM que nous verrons plus tard. Alors que RTRL lui n'a été développé que pour les réseaux fully connected, même s'il doit être possible de déterminer les formules de propagation pour d'autres architectures.
+\item il peut s'appliquer à n'importe quelle architecture de réseaux récurrents, et donc en particulier à l'architecture LSTM que nous verrons plus tard. RTRL n'a quant à lui été développé que pour les réseaux fully-connected, même s'il doit être possible de déterminer les formules de propagation pour d'autres architectures.
 \end{itemize}
 
 \section{Évaluation}
@@ -236,13 +236,13 @@ Dans un premier temps, nous avons comparé ces algorithmes sur l'apprentissage d
 \end{center}
 \end{figure}
 
-À l'aide de cette automate, nous avons généré deux ensembles de mots respectivement afin d'entraîner et de tester notre futur réseau. L'objectif du réseau sera alors d'apprendre cette grammaire afin de prédire les caractères possibles après un caractère donné.
+À l'aide de cette automate, nous avons généré deux ensembles de mots distincts afin d'entraîner d'une part et de tester d'autre part notre futur réseau. L'objectif du réseau sera alors d'apprendre cette grammaire afin de prédire les caractères possibles après un caractère donné.
 
-Plus précisément, si $w_1w_2...w_n$ est un mot reconnu par le grammaire de Reber. Nous associons à chaque lettre de l'ensemble $\{B, T, P, S, X, V, E\}$ un nombre dans $\{1, ..., 7\}$. Puis nous créons une séquence $(x_1, ..., x_n)$ où pour tout $i$, $x_i \in \mathbb{R}^7$ est la lettre $w_i$ \textit{one hot encoded}. Par exemple si $w_1$ est $B$ et que $B$ est associé au nombre $1$ alors $x_1 = (1, 0, ..., 0)$. À chaque temps $t \in \{1, ..., n-1\}$, nous voulons que le réseau prédisent les transitions possibles pour de l'automate après qu'il est vu $w_1...w_t$.
+Plus précisément, si $w_1w_2...w_n$ est un mot reconnu par la grammaire de Reber, nous associons à chaque lettre de l'ensemble $\{B, T, P, S, X, V, E\}$ un nombre dans $\{1, ..., 7\}$. Puis nous créons une séquence $(x_1, ..., x_n)$ où pour tout $i$, $x_i \in \mathbb{R}^7$ est la lettre $w_i$ \textit{one hot encoded}. Par exemple si $w_1$ est $B$ et que $B$ est associé au nombre $1$ alors $x_1 = (1, 0, ..., 0)$. À chaque temps $t \in \{1, ..., n-1\}$, nous voulons que le réseau prédise les transitions possibles de l'automate après qu'il ait vu $w_1...w_t$.
 
 Les réseaux que nous utiliserons, émettront à chaque temps $t$ un vecteur de $\mathbb{R}^7$ où chaque coordonnée sera comprise entre $0$ et $1$. Nous dirons que le réseau a prédit une transition utilisant la lettre $w$ au temps $t$ si la coordonnée correspondante du vecteur a une valeur supérieure à un seuil défini. Nous avons utilisé $0.3$ comme valeur seuil.
 
-Lors des phases de test, nous calculons un score pour évaluer le réseau. Ce score est la proportion des mots pour lesquels il a prédit correctement toutes les transitions.
+Lors des phases de test, nous calculons un score pour évaluer le réseau. Ce score est la proportion des mots pour lesquels celui-ci a correctement prédit toutes les transitions.
 
 Ce premier problème permet d'évaluer la capacité des réseaux récurrents à traiter des séquences de taille variable.
 
@@ -255,13 +255,13 @@ L'étape suivante consistera à tester les algorithmes sur l'apprentissage de la
 \end{center}
 \end{figure}
 
-Cette fois le problème qui nous intéresse est de savoir si le réseau est capable de retenir une information sur le long terme. Ainsi si nous évaluerons le réseau sur sa capacité à bien se souvenir que la deuxième lettre est la même que l'avant dernière lettre d'un mot de la grammaire de Reber symétrique.
+Cette fois le problème qui nous intéresse est de savoir si le réseau est capable de retenir une information sur le long terme. Ainsi nous évaluons le réseau sur sa capacité à bien se souvenir que la deuxième lettre est la même que l'avant-dernière lettre d'un mot de la grammaire de Reber symétrique.
 
-Cette fois nous utilisons un score différent. Le score sera la proportion des mots pour lesquels le réseau a correctement prédit que la deuxième lettre était la même que l'avant dernière.
+Nous utilisons ici un score différent. Le score sera la proportion des mots pour lesquels le réseau a correctement prédit que la deuxième lettre était la même que l'avant-dernière.
 
 \subsection{Résultats}
 
-Le tableau ci-dessous montre les sorties d'un réseau récurrent entrainé avec RTRL. À chaque temps, il renvoie un vecteur de $\mathbb{R^7}$ indiquant pour lui les transitions possibles. Les transitions sélectionnées sont celles dont la sortie associée est supérieur à $0.3$. Elle sont en gras dans le tableau.
+Le tableau ci-dessous montre les sorties d'un réseau récurrent entraîné avec RTRL. À chaque temps, il renvoie un vecteur de $\mathbb{R}^7$ indiquant pour lui les transitions possibles. Les transitions sélectionnées sont celles dont la sortie associée est supérieure à $0.3$. Elle sont en gras dans le tableau.
 
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|c|c|}
@@ -283,9 +283,9 @@ V & 0.00 & 0.00 & 0.01 & 0.02 & 0.02 & 0.00 & \textbf{0.97} \\
 \end{tabular}
 \end{center}
 
-On remarque que sur cet exemple, toutes les prédictions prédites sont valides.
+On remarque que sur cet exemple, toutes les prédictions sont valides.
 
-De manière plus générale, ce réseau récurrent est capable d'apprendre parfaitement la grammaire de Reber simple. En effet dans la figure \ref{curves_reber_simple} où sont présentes les courbes d'apprentissage d'un réseau entrainé avec RTRL et BPTT, on remarque qu'assez rapidement, après environ 5000 chaînes de caractères, le réseau atteint un score de $1.0$. C'est-à-dire que sur les $10000$ chaînes que nous lui soumettons, il prédit à chaque toutes les transitions justes.
+De manière plus générale, ce réseau récurrent est capable d'apprendre parfaitement la grammaire de Reber simple. En effet dans la figure \ref{curves_reber_simple} où sont présentes les courbes d'apprentissage d'un réseau entrainé avec RTRL et BPTT, on remarque qu'assez rapidement, après environ 5000 chaînes de caractères, le réseau atteint un score de $1.0$. C'est-à-dire que sur les $10000$ chaînes que nous lui soumettons, il prédit à chaque fois toutes les transitions justes.
 
 \begin{figure}[h!]
 \begin{center}
@@ -298,11 +298,13 @@ De manière plus générale, ce réseau récurrent est capable d'apprendre parfa
 \end{center}
 \end{figure}
 
-L'apprentissage de la grammaire de Reber simple par un réseau récurrent est donc un succès. On obtient bien des résultats équivalents avec les deux algorithmes de calcul du gradient ce qui était attendu.
+L'apprentissage de la grammaire de Reber simple par un réseau récurrent est donc un succès. On obtient bien des résultats équivalents avec les deux algorithmes de calcul du gradient, ce qui était attendu.
 
-Intéressons maintenant à la grammaire de Reber symétrique. L'objectif est maintenant de tester si cette architecture de réseaux récurrents est capable d'apprendre des dépendances à long terme. Ou autrement dit d'apprendre des motifs sur une longue période de temps.
+\medbreak
 
-On retrouvera les résultats moyennés pour les deux algorithmes sur la figure \ref{curves_reber_double}. Le score utilisé sur ces courbes est le même que pour la grammaire de Reber simple. Si l'on considère seulement la bonne prédiction de l'avant dernière lettre alors on obtient un score de $0.75$.
+Intéressons-nous maintenant à la grammaire de Reber symétrique. L'objectif est maintenant de tester si cette architecture de réseaux récurrents est capable d'apprendre des dépendances à long terme ou autrement dit d'apprendre des motifs sur une longue période de temps.
+
+On retrouvera les résultats moyennés pour les deux algorithmes sur la figure \ref{curves_reber_double}. Le score utilisé sur ces courbes est le même que pour la grammaire de Reber simple. Si l'on considère seulement la bonne prédiction de l'avant-dernière lettre alors on obtient un score de $0.75$.
 
 \begin{figure}[h!]
 \begin{center}
@@ -312,9 +314,9 @@ On retrouvera les résultats moyennés pour les deux algorithmes sur la figure \
 \end{center}
 \end{figure}
 
-On remarque donc que le réseau n'est pas capable d'apprendre parfaitement la grammaire de Reber symétrique. Sa principale cause d'échec est l'incapacité à prédire correctement l'avant dernière lettre comme étant la seconde. Néanmoins, on remarque encore que les algorithmes RTRL et BPTT offrent exactement la même dynamique ce qui confirme que ces deux algorithmes calculent bien la même quantité dans ce cas-ci.
+On remarque donc que le réseau n'est pas capable d'apprendre parfaitement la grammaire de Reber symétrique. Sa principale cause d'échec est l'incapacité à prédire correctement l'avant-dernière lettre comme étant la seconde. Néanmoins, on remarque encore que les algorithmes RTRL et BPTT offrent exactement la même dynamique ce qui confirme que ces deux algorithmes calculent bien la même quantité dans ce cas-ci.
 
-On en conclut que l'architecture de réseaux récurrents que nous avons utilisée bien que permettant de traiter des séquences de taille variable est limitée quant à son apprentissage des longues dépendances temporelles.
+On en conclut que l'architecture de réseaux récurrents que nous avons utilisée, bien que permettant de traiter des séquences de taille variable, est limitée quant à son apprentissage des longues dépendances temporelles.
 
 Dans la section suivante, nous allons donner des pistes théoriques pour comprendre l'incapacité de ces réseaux à apprendre des motifs sur des grandes périodes de temps. Cette vision théorique nous permettra ensuite d'introduire la cellule LSTM.
 
@@ -322,7 +324,7 @@ Dans la section suivante, nous allons donner des pistes théoriques pour compren
 
 \label{dependances_temporelles}
 
-Pour conclure cette partie, nous allons effectuer une analyse théorique montrant les limitations des réseaux récurrents fully-connected. Il en resortira la nécessité d'une architecture plus complexe permettant la conservation des dépendances temporelles à long terme.
+Pour conclure cette partie, nous allons effectuer une analyse théorique montrant les limitations des réseaux récurrents fully-connected. Il en ressortira la nécessité d'une architecture plus complexe permettant la conservation des dépendances temporelles à long terme.
 
 Nous allons prendre un réseau et des notations similaires à celui utilisé dans la partie \ref{RTRL_section} sur l'algorithme RTRL. On retrouvera une visualisation de l'architecture considérée dans la figure \ref{archi_dep_tempo}. On prend un réseau avec $n$ neurones cachés numérotés de $1$ à $n$, $m - n$ neurones de sortie numérotés de $n+1$ à $m$ et $p - m$ neurones d'entrée numérotés de $m+1$ à $p$.
 
@@ -351,7 +353,7 @@ On note alors pour $i \in \{1, ..., m\}$ :
 
 Notre objectif est de montrer que la dépendance temporelle entre un neurone caché du temps $t$ et d'un neurone du temps $t + q$ diminue rapidement avec $q$. Ce qui montrera que cette architecture n'est pas adaptée pour apprendre des dépendances à long terme.
 
-$\epsilon_i(t)$ représente le gradient de l'erreur par rapport à l'activation d'un neurone $i$ du temps $t$ et $\epsilon_j(t+q)$ le gradient de l'erreur par rapport à l'activation d'un neurone $j$ du temps $t+q$. On voudrait montrer que ces deux quantités s'influencent de moins en moins lorsque $q$ augmente. En effet cela montrerait que lors de est difficile d'apprendre des dépendances à long terme. Pour cela, nous allons donc étudier la quantité $\frac{\partial \epsilon_i(t)}{\partial \epsilon_j(t+q)}$ et montrer que celle-ci décroit rapidement avec $q$.
+$\epsilon_i(t)$ représente le gradient de l'erreur par rapport à l'activation d'un neurone $i$ du temps $t$ et $\epsilon_j(t+q)$ le gradient de l'erreur par rapport à l'activation d'un neurone $j$ du temps $t+q$. On voudrait montrer que ces deux quantités s'influencent de moins en moins lorsque $q$ augmente. En effet, cela montrerait qu'il est difficile d'apprendre des dépendances à long terme. Pour cela, nous allons donc étudier la quantité $\frac{\partial \epsilon_i(t)}{\partial \epsilon_j(t+q)}$ et montrer que celle-ci décroit rapidement avec $q$.
 
 Pour un neurone de sortie, on a :
 $$
@@ -425,6 +427,6 @@ $$
 
 On en conclut que si $w_{max} < \frac{4}{n}$ alors on a une décroissance exponentielle.
 
-Ce résultat dit donc que si les poids sont inférieurs à une certaine valeur alors, on peut être sûr que le réseau ne pourra pas modéliser convenablement les dépendances à long terme.
+Ce résultat dit donc que si les poids sont inférieurs à une certaine valeur, alors on peut être sûr que le réseau ne pourra pas modéliser convenablement les dépendances à long terme.
 
 Afin de contourner ce problème, nous introduisons dans la partie suivante une architecture de réseaux de neurones récurrents, le LSTM, qui a été développée pour résoudre ce problème spécifiquement.
