@@ -111,6 +111,20 @@ W_{t+1}=W_t - \dfrac{\alpha\hat{m}_{t+1}}{\sqrt{\hat{g}_{t+1}}+\epsilon}
 
 Nous avons eu l'occasion d'implémenter ces différents algorithmes et de les appliquer aux problèmes précédents. S'il n'y a pas à l'heure actuelle de consensus sur le meilleur d'entre eux, certaines solutions se sont révélées être bien plus efficaces que d'autres dans notre cas.
 
+\subsection{Point selle}
+
+La première étude menée afin de comparer les performances de ces différents algorithmes a été de regarder leur comportement autour d'un point selle. Pour cela, nous avons choisi la fonction $f : (x, y) \mapsto x^2 - y^2$ et avons pris comme point initial $(0.8, -1\times10^{-8})$ puis nous avons exécuté les différents algorithmes. Les résultats de cette expérience se trouvent sur la figure \ref{point_selle}.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.5]{images/chapter8/comparaison_selle.png}
+\caption{Comparaison de la dynamique des différents algorithmes d'optimisation autour d'un point selle.}
+\label{point_selle}
+\end{center}
+\end{figure}
+
+L'algorithme de la descente du gradient descend directement en direction du point selle puis se retrouve bloqué autour du point $(0, 0)$ car le gradient y est très faible. Les autres algorithmes ne se retrouvent pas coincés autour de $(0, 0)$ car ils adaptent le taux d'apprentissage pour chaque coordonnée. Le gradient par rapport à la coordonnée $y$ est très faible mais non nul, ces algorithmes vont alors utiliser un learning rate élevé pour cette coordonnée ce qui va permettre de directement se diriger dans la bonne direction.
+
 \subsection{Application à l'apprentissage du XOR}
 
 \begin{figure}[!h]
