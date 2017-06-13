@@ -163,45 +163,89 @@ Il est nécessaire de passer un grand nombre de batchs avant d'avoir des résult
 
 \section{Génération de partitions}
 
+Dans cette partie, notre objectif est de générer des partitions de musique. Nous allons manipuler de la musique formellement. Les hauteurs des notes seront quantifiées, seules les hauteurs utilisées dans le solfège seront autorisées. De même pour les durées des notes, elles seront quantifiées.
+
+Notre démarche a été de commencer simplement en générant seulement des notes pour un seul instrument puis de complexifier notre architecture afin de générer des notes pour plusieurs instruments.
+
+L'ensemble de données utilisé pour l'apprentissage est principalement un ensemble de gigues. Cet ensemble a l'avantage d'être assez grand et les morceaux sont assez similaires entre eux ce qui facilite l'apprentissage du réseau. Quelques tentatives ont été effectuées sur d'autres ensembles de données mais leur petite taille ou manque de similarité n'a pas permis d'aboutir à des résultats concluants.
+
+Dans toute cette partie, on utilise la bibliothèque \texttt{music21} qui permet de manipuler très aisément des partitions en Python. Elle permet entre autre de lire des fichiers dans les formats MIDI, ABC et MusicXML et fournit une représentation formelle des morceaux de musiques.
+
 \subsection{Génération de notes}
 
+La première étape dans la génération de partitions consiste à apprendre à un réseau à générer des suites de notes. Nous essaierons ensuite d'étendre l'architecture à plusieurs instruments.
+
 \subsubsection{Architecture}
+
+Nous modélisons une note comme une hauteur et une durée. On associe alors à une note un vecteur de $\mathbb{R}^{m+n}$ où :
+\begin{itemize}
+\item les $m$ premières dimensions servent à décrire la hauteur de la note ou un caractère spécial (silence, début d'un morceau, ...) ;
+\item les $n$ suivantes la durée de la note.
+\end{itemize}
+Les deux parties sont \textit{one-hot-encoded} c'est-à-dire qu'elles contiennent un $1$ aux indices correspondants à la hauteur et à la durée de la note et des $0$ ailleurs.
+
+Nous utilisons alors une architecture assez proche de celle présentée dans la partie \ref{chapter7}. Une représentation simplifiée est présente sur la figure \ref{note_rnn_simplified}.
 
 \begin{figure}[h!]
 \begin{center}
 \input{images/chapter9/note_rnn_simplified.tex}
 \caption{Architecture du réseau utilisé pour la génération de notes.}
+\label{note_rnn_simplified}
 \end{center}
 \end{figure}
+
+Il existe cependant une différence car il est nécessaire de générer une hauteur et une durée et non plus seulement un caractère comme dans la partie \ref{chapter7}. Afin de réaliser cela, on utilise deux fois la fonction $softmax$ en sortie. Une fois sur les $m$ premières coordonnées et une autre fois sur les $n$ dernières coordonnées. Il faut alors changer la fonction de coût de manière correspondante : on utilise la fonction de coût $softmaxCE$ indépendamment pour les deux parties du vecteur de sortie. On retrouvera un schéma détaillé de cette architecture sur la figure \ref{note_rnn}. Cette modélisation permet d'apprendre deux distribution de probabilités : une pour la hauteur et une pour la durée. Il faut noter que ces distributions de probabilités sont dépendantes car générées à partir de la sortie de la cellule LSTM.
 
 \begin{figure}[h!]
 \begin{center}
 \input{images/chapter9/note_rnn.tex}
 \caption{Architecture plus détaillée du réseau utilisé pour la génération de notes.}
+\label{note_rnn}
 \end{center}
 \end{figure}
 
 \subsubsection{Résultats}
+
+L'apprentissage a été effectué sur l'ensemble de gigues en ne conservant que les notes de la mélodie. On retrouvera sur la figure \ref{result_note_rnn} un exemple de mélodie générée par ce réseau.
 
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.3]{images/chapter9/note_rnn_result.png}
 \caption{Mélodie générée par le réseau \textit{note-rnn}.}
+\label{result_note_rnn}
 \end{center}
 \end{figure}
 
+La structure de la mélodie correspond à celle d'une gigue. Les hauteurs des notes qui se suivent sont souvent proches. Néanmoins, à l'écoute, le résultat n'est pas d'une grande qualité car il manque la basse qui est un élément essentiel pour une gigue. Dans les sections suivantes, nous allons étudier les solutions que nous avons proposées afin de générer des notes pour plusieurs instruments.
+
 \subsection{Génération de notes pour plusieurs instruments en série}
 
+La première idée pour étendre le réseau précédent à la génération de notes pour plusieurs instruments est de générer les notes en série. C'est-à-dire que le réseau génère les notes une par une en choisissant pour quel instrument il génère la note à chaque fois.
+
 \subsubsection{Architecture}
+
+Une note sera maintenant modélisée par un instrument, une hauteur et une durée. On associe alors à une note un vecteur de $\mathbb{R}^{l+m+n}$ où :
+\begin{itemize}
+\item les $l$ premières dimensions servent à spécifier l'instrument qui joue la note ;
+\item les $m$ suivantes servent à décrire la hauteur de la note ou un caractère spécial (silence, début d'un morceau, ...) ;
+\item les $n$ dernières la durée de la note.
+\end{itemize}
+
+On retrouvera l'architecture du réseau sur la figure \label{series_rnn}. On utilise ici trois fois la fonction $softmax$ en sortie afin de générer trois distributions de probabilités : une pour l'instrument, une pour la hauteur et une pour la durée. On utilise alors une fonction de coût idoine qui est la somme de trois $softmaxCE$. 
 
 \begin{figure}[h!]
 \begin{center}
 \input{images/chapter9/series_rnn.tex}
 \caption{Architecture du réseau utilisé pour la génération de notes pour plusieurs instruments en série.}
+\label{series_rnn}
 \end{center}
 \end{figure}
 
 \subsubsection{Résultats}
+
+Les résultats sont obtenus après entrainement sur l'ensemble de gigues en séparant les notes des deux instruments.
+
+On retrouvera un exemple de partition générée par cette architecture.
 
 \begin{figure}[h!]
 \begin{center}
@@ -210,34 +254,75 @@ Il est nécessaire de passer un grand nombre de batchs avant d'avoir des résult
 \end{center}
 \end{figure}
 
+On remarque que le réseau arrive bien à générer une mélodie et une basse. Les morceaux de musique ainsi générés sont d'assez bonne facture. Néanmoins, un des problèmes majeurs de cette architecture est que ce soit le réseau qui choisit l'instrument qui joue des notes à chaque pas de temps. Il peut avoir tendance à générer plus de notes pour un instrument qu'un autre.
+
+Cette architecture peut très facilement s'étendre à plus de deux instruments.
+
 \subsection{Génération de notes pour plusieurs instruments en parallèle}
 
+Finalement la dernière architecture que nous avons considérée est la génération de notes en parallèle pour plusieurs instruments ce qui permet d'éviter que le réseau génère plus de notes pour un instrument qu'un autre.
+
+Au début, nous voulions qu'à chaque pas de temps le réseau génère une note pour chaque instrument. Cependant cette méthodologie a un grand problème qui est dû au fait que les notes peuvent avoir des durées très différentes. Ainsi même si chaque instrument aurait eu le même nombre de notes, leur partition respective auraient pu avoir des durées très différentes.
+
+Afin de remédier à ce problème, nous avons fait le constat que l'unité de temps constante pour tous les instruments est la mesure. Notre idée est donc de générer en parallèle une mesure pour chaque instrument à chaque pas de temps du réseau.
+
+Le problème réside donc maintenant dans la représentation des mesures pour les mettre en entrée d'un réseau de neurones. En effet, les mesures peuvent contenir un nombre de notes très variable, il n'est donc pas évident de créer un encodage de taille fixe pour celles-ci. La solution que nous avons choisie est d'utiliser un réseau de neurones spécial, un autoencodeur, pour réaliser l'encodage et le décodage des mesures.
+
 \subsubsection{Autoencodeur de mesures}
+
+Un autoencodeur est un réseau qui prend une entrée, fournit une représentation intermédiaire puis essaye de prédire son entrée grâce à cette représentation intermédiaire.
+
+Souvent on utilise des autoencodeurs afin de faire de la compression ou de la réduction de dimension en choisissant une représentation intermédiaire de taille inférieure à la taille de l'entrée.
+
+Dans notre cas, nous utilisons des autoencodeurs afin de créer une représentation de taille fixe pour les séquences de notes de taille variable que sont les mesures.
+
+Sur la figure \ref{autoencoder} se trouve l'architecture que nous avons utilisé pour notre autoencodeur. Le réseau peut se décomposer en deux parties l'encodeur et le décodeur. La représentation intermédiaire que nous utilisons est le vecteur $c$, sa taille est déterminée par la taille de l'état caché des cellules LSTM de l'encodeur. Lors de l'apprentissage, le réseau est entrainé comme une seule et unique partie. Cependant lors de la génération de mesures, nous allons d'abord utiliser seulement la partie encodeur pour encoder les mesures afin de les mettre en entrée du réseau. Puis, nous utiliserons seulement la partie décodeur afin de décoder les sorties du réseau. 
 
 \begin{figure}[h!]
 \begin{center}
 \input{images/chapter9/autoencoder.tex}
 \caption{Architecture d'un autoencodeur de séquences.}
+\label{autoencoder}
 \end{center}
 \end{figure}
 
+Après apprentissage sur les mesures de l'ensemble des gigues, en utilisant deux cellules LSTM à chaque pas de temps avec un état de taille $64$, le réseau a atteint une précision de $99.7\%$. C'est-à-dire que sur les $250000$ mesures de l'ensemble d'apprentissage que nous avons encodées puis décodées l'encodage, dans $99.7\%$ des cas, la mesure décodée était exactement la même que l'entrée.
+
 \subsubsection{Architecture}
+
+Maintenant que nous disposons d'un encodage de taille fixe pour les mesures, nous pouvons aisément créer une architecture de réseau générant des mesures. Sur la figure \ref{measure_rnn} se trouve l'architecture que nous avons utilisée.
+
+En sortie du réseau, nous n'avons cette fois-ci pas utilisé la fonction $softmax$ afin de créer une distribution de probabilités car nous sommes dans un problème de régression : l'objectif de l'apprentissage est de générer un vecteur proche de celui de la mesure encodée en sortie. Ainsi, nous avons utilisé une fonction de coût quadratique.
 
 \begin{figure}[h!]
 \begin{center}
 \input{images/chapter9/measure_rnn.tex}
 \caption{Architecture du réseau utilisé pour la génération de notes pour plusieurs instruments en parallèle.}
+\label{measure_rnn}
 \end{center}
 \end{figure}
 
+Cette architecture s'étend très facilement à plus de deux instruments.
+
 \subsubsection{Résultats}
+
+On trouvera sur la figure \ref{result_measure_rnn}, une partition générée par l'architecture présentée.
 
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.3]{images/chapter9/measure_rnn_result.png}
 \caption{Partition générée par le réseau \textit{measure-rnn}.}
+\label{result_measure_rnn}
 \end{center}
 \end{figure}
+
+Les morceaux générés sont de très bonne qualité. À notre avis, ils sont d'une qualité supérieure à la génération série. Il serait intéressant de tester cette architecture sur des ensembles de musique comportant plus de deux instruments.
+
+\subsection{Conclusion}
+
+La génération de partitions a comme avantage de manipuler des données très quantifiées ce qui facilite grandement l'apprentissage et la qualité des morceaux générés.
+
+Cependant, cette avantage est aussi une de ses faiblesses. En effet, il est plus difficile avec cette méthode de générer des musiques pour plusieurs instruments. Un point que nous n'avons d'ailleurs pas eu le temps de traiter est la génération d'accords c'est-à-dire de plusieurs notes en même temps pour plusieurs instruments. Nous pensons qu'il est possible de le faire en modifiant un peu nos architectures précédentes.
 
 \section{Génération de signaux}
 \subsection{Présentation du format}
