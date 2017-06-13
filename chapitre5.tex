@@ -261,40 +261,62 @@ Cette fois nous utilisons un score différent. Le score sera la proportion des m
 
 \subsection{Résultats}
 
+Le tableau ci-dessous montre les sorties d'un réseau récurrent entrainé avec RTRL. À chaque temps, il renvoie un vecteur de $\mathbb{R^7}$ indiquant pour lui les transitions possibles. Les transitions sélectionnées sont celles dont la sortie associée est supérieur à $0.3$. Elle sont en gras dans le tableau.
+
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|c|c|}
 \hline
 Caractère présenté & B & T & P & S & X & V & E \\
 \hline
-B & 0.01 & 0.48 & 0.51 & 0.01 & 0.01 & 0.01 & 0.01 \\
+B & 0.01 & \textbf{0.48} & \textbf{0.51} & 0.01 & 0.01 & 0.01 & 0.01 \\
 \hline
-T & 0.00 & 0.02 & 0.00 & 0.56 & 0.43 & 0.02 & 0.01 \\
+T & 0.00 & 0.02 & 0.00 & \textbf{0.56} &  \textbf{0.43} & 0.02 & 0.01 \\
 \hline
-X & 0.00 & 0.01 & 0.00 & 0.53 & 0.47 & 0.02 & 0.00 \\
+X & 0.00 & 0.01 & 0.00 & \textbf{0.53} & \textbf{0.47} & 0.02 & 0.00 \\
 \hline
-X & 0.01 & 0.47 & 0.01 & 0.03 & 0.02 & 0.50 & 0.02 \\
+X & 0.01 & \textbf{0.47} & 0.01 & 0.03 & 0.02 & \textbf{0.50} & 0.02 \\
 \hline
-V & 0.01 & 0.01 & 0.51 & 0.00 & 0.00 & 0.47 & 0.03 \\
+V & 0.01 & 0.01 & \textbf{0.51} & 0.00 & 0.00 & \textbf{0.47} & 0.03 \\
 \hline
-V & 0.00 & 0.00 & 0.01 & 0.02 & 0.02 & 0.00 & 0.97 \\
+V & 0.00 & 0.00 & 0.01 & 0.02 & 0.02 & 0.00 & \textbf{0.97} \\
 \hline
 \end{tabular}
 \end{center}
 
+On remarque que sur cet exemple, toutes les prédictions prédites sont valides.
+
+De manière plus générale, ce réseau récurrent est capable d'apprendre parfaitement la grammaire de Reber simple. En effet dans la figure \ref{curves_reber_simple} où sont présentes les courbes d'apprentissage d'un réseau entrainé avec RTRL et BPTT, on remarque qu'assez rapidement, après environ 5000 chaînes de caractères, le réseau atteint un score de $1.0$. C'est-à-dire que sur les $10000$ chaînes que nous lui soumettons, il prédit à chaque toutes les transitions justes.
+
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[scale=0.4]{images/chapter5/learning_curve_rtrl_reber_sequence.png}
+\begin{tabular}{cc}
+\includegraphics[scale=0.3]{images/chapter5/learning_curve_rtrl_reber_sequence.png} & 
+\includegraphics[scale=0.3]{images/chapter5/learning_curve_bptt_reber_sequence.png}
+\end{tabular}
+\caption{Évolution de la précision lors de l'apprentissage d'un réseau récurrent à 7 neurones d'entrée, 2 neurones cachés et 7 neurones de sorties avec RTRL (à gauche) et avec BPTT (à droite).}
+\label{curves_reber_simple}
 \end{center}
 \end{figure}
+
+L'apprentissage de la grammaire de Reber simple par un réseau récurrent est donc un succès. On obtient bien des résultats équivalents avec les deux algorithmes de calcul du gradient ce qui était attendu.
+
+Intéressons maintenant à la grammaire de Reber symétrique. L'objectif est maintenant de tester si cette architecture de réseaux récurrents est capable d'apprendre des dépendances à long terme. Ou autrement dit d'apprendre des motifs sur une longue période de temps.
+
+On retrouvera les résultats moyennés pour les deux algorithmes sur la figure \ref{curves_reber_double}. Le score utilisé sur ces courbes est le même que pour la grammaire de Reber simple. Si l'on considère seulement la bonne prédiction de l'avant dernière lettre alors on obtient un score de $0.75$.
 
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.4]{images/chapter5/rtrl_bptt.png}
-\caption{Résultats des algorithmes BPTT (rouge) et RTRL (bleu) sur l'apprentissage d'une grammaire de Reber symétrique, moyenné sur 100 essais}
-\ref{Reber_Sym_RTRL_BPTT}
-\label{BPTT_RTRL_Reber_Sym}
+\caption{Résultats des algorithmes BPTT (rouge) et RTRL (bleu) sur l'apprentissage d'une grammaire de Reber symétrique, moyenné sur 100 essais. Le réseau utilisé contient 7 neurones d'entrée, 12 neurones cachés et 7 neurones de sortie.}
+\label{curves_reber_double}
 \end{center}
 \end{figure}
+
+On remarque donc que le réseau n'est pas capable d'apprendre parfaitement la grammaire de Reber symétrique. Sa principale cause d'échec est l'incapacité à prédire correctement l'avant dernière lettre comme étant la seconde. Néanmoins, on remarque encore que les algorithmes RTRL et BPTT offrent exactement la même dynamique ce qui confirme que ces deux algorithmes calculent bien la même quantité dans ce cas-ci.
+
+On en conclut que l'architecture de réseaux récurrents que nous avons utilisée bien que permettant de traiter des séquences de taille variable est limitée quant à son apprentissage des longues dépendances temporelles.
+
+Dans la section suivante, nous allons donner des pistes théoriques pour comprendre l'incapacité de ces réseaux à apprendre des motifs sur des grandes périodes de temps. Cette vision théorique nous permettra ensuite d'introduire la cellule LSTM.
 
 \section{Problème des dépendances temporelles}
 
