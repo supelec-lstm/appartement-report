@@ -1,5 +1,5 @@
 \chapter{Réseaux de neurones récurrents}
-
+\label{chap:Réseaux de neurones récurrents}
 \section{Motivation}
 
 Nous avons pu voir que les réseaux feedforward peuvent être utilisés afin d'appendre à prédire la sortie voulue en fonction de l'entrée du réseau. 
@@ -281,7 +281,13 @@ V & 0.00 & 0.00 & 0.01 & 0.02 & 0.02 & 0.00 & 0.97 \\
 \end{tabular}
 \end{center}
 
-\begin{figure} [h!]
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.4]{images/chapter5/learning_curve_rtrl_reber_sequence.png}
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.4]{images/chapter5/rtrl_bptt.png}
 \caption{Résultats des algorithmes BPTT (rouge) et RTRL (bleu) sur l'apprentissage d'une grammaire de Reber symétrique, moyenné sur 100 essais}
