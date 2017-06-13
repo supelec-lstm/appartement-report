@@ -206,10 +206,10 @@ En conclusion, un neurone est une fonction relativement simple permettant de mod
 Un réseau de neurones est défini par un graphe orienté $\mathcal{G}(V, A)$ où les n\oe{}uds sont des neurones et les arêtes des liens entre les neurones et par un ensemble de neurones d'entrée $V_{in} \subset V$ et de neurones de sorties $V_{out} \subset V$. Une arête partant d'un neurone $i$ vers un neurone $j$ signifie que la sortie du neurone $i$ est une entrée pour le neurone $j$. Notons $f_{j}$ la fonction représentant le neurone $j$. Finalement, nous noterons un réseau $\mathcal{N}(V, A, V_{in}, V_{out}, f)$ où $f$ est l'ensemble des fonctions des neurones.
 \end{definition}
 
-Si nous notons $Pa$ l'application qui à un neurone renvoie les indices de ses parents et $Ch$ l'application qui à un neurone renvoie les indices de ses enfants. Alors la sortie du neurone $j$ est :
+Si nous notons $\{i \text{ tel que } (i, j) \in A\}$ l'ensemble des indices des parents du neurone $j$ et $\{j \text{ tel que } (i, j) \in A\}$ l'ensemble des indices des enfants du neurone $i$. Alors la sortie du neurone $j$ est :
 
 \begin{equation}
-y_{j} = f_{j}((y_{i})_{i \in Pa(j)})
+y_{j} = f_{j}((y_{i})_{i \text{ tel que } (i, j) \in A})
 \label{eq_propagation}
 \end{equation} 
 
@@ -241,7 +241,7 @@ Ainsi, un premier algorithme naïf est :
 	\If{$j \in V_{in}$}
     	\State \Return $x_j$
 	\Else
-		\State $t \leftarrow (evaluer\_neurone(i), i \in Pa(j))$
+		\State $t \leftarrow (evaluer\_neurone(i), i \text{ tel que } (i, j) \in A)$
 		\State \Return $f_j(t)$
 	\EndIf
 \EndFunction
@@ -261,7 +261,7 @@ Cette version n'est pas du tout efficace, elle calcule plusieurs fois la sortie 
 \Procedure{$evaluer\_reseau$}{$\mathcal{N}(V, A, V_{in}, V_{out}, f), x$}
 \Function{$evaluer\_neurone$}{$j$}
 	\If{$déjàCalculé[j]$ est $faux$}
-		\State $t \leftarrow (evaluer\_neurone(i), i \in Pa(j))$
+		\State $t \leftarrow (evaluer\_neurone(i), i \text{ tel que } (i, j) \in A)$
 		\State $y_j \leftarrow f_j(t)$
 		\State $déjàCalculé[j] \leftarrow vrai$
 	\EndIf
@@ -468,10 +468,10 @@ On peut remarquer que le terme $\frac{\partial s_j}{\partial w_j}$ est égal à 
 \label{dEdw}
 \end{equation}
 
-Afin de calculer $\frac{\partial E}{\partial y_j}$, utilisons le fait que la sortie du neurone $j$ est une des entrées de ses enfants. En notant $x_{i, j}$ l'entrée du neurone i correspondant à la sortie du neurone $j$, on a :
+Afin de calculer $\frac{\partial E}{\partial y_j}$, utilisons le fait que la sortie du neurone $j$ est une des entrées de ses enfants. En notant $x_{i, j}$ l'entrée du neurone $i$ correspondant à la sortie du neurone $j$, on a :
 
 \begin{equation}
-\frac{\partial E}{\partial y_j} = \sum_{i \in Ch(j)}{\frac{\partial E}{\partial x_{i,j}}}
+\frac{\partial E}{\partial y_j} = \sum_{i \text{ tel que } (j, i) \in A}{\frac{\partial E}{\partial x_{i,j}}}
 \label{formule_retropropagation}
 \end{equation}
 
@@ -489,7 +489,7 @@ Finalement, en utilisant les formules \ref{dEdw}, \ref{formule_retropropagation}
 \Procedure{$retropropager\_gradient$}{$\mathcal{N}(V, A, V_{in}, V_{out}, f), x, y$}
 \Function{$calculer\_gradient$}{$j$}
 	\If{$déjàCalculé_j$ est $faux$}
-		\State $\frac{\partial E}{\partial y_j} \leftarrow \sum_{i \in Ch(j)}{calculer\_gradient(i)_j}$
+		\State $\frac{\partial E}{\partial y_j} \leftarrow \sum_{i \text{ tel que } (j, i) \in A}{calculer\_gradient(i)_j}$
 		\State $\frac{\partial E}{\partial x_j} \leftarrow \frac{\partial E}{\partial y_j} g_j'(s_j) w_j$
 		\State $\frac{\partial E}{\partial w_j} \leftarrow \frac{\partial E}{\partial y_j} g_j'(s_j) x_j$
 		\State $déjàCalculé_j \leftarrow vrai$
