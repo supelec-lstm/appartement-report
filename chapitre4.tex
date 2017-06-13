@@ -1,4 +1,3 @@
-
 \chapter{Études des paramètres}
 
 \section{Approche du problème}
@@ -32,7 +31,7 @@ Cette même étude réalisée dans les mêmes conditions en remplaçant simpleme
 
 \begin{figure}[!h]
 \begin{center}
-\includegraphics[scale=0.6]{images/xor_architecture_tanh.png}
+\includegraphics[scale=0.6]{images/chapter4/xor_architecture_tanh.png}
 \caption{Convergence en fonction de l'architecture avec tanh}
 \label{xor_architecture_tanh}
 \end{center}
@@ -40,7 +39,7 @@ Cette même étude réalisée dans les mêmes conditions en remplaçant simpleme
 
 \begin{figure}[!h]
 \begin{center}
-\includegraphics[scale=0.6]{images/xor_architecture_relu.png}
+\includegraphics[scale=0.6]{images/chapter4/xor_architecture_relu.png}
 \caption{Convergence en fonction de l'architecture avec relu}
 \label{xor_architecture_relu}
 \end{center}
@@ -70,7 +69,7 @@ De façon intuitive, il parait évident qu'une plus grande architecture de rése
 Ainsi, alors qu'un apprentissage effectué sans couche cachée sur 30 passages du set de données mnist aura une précision d'environ 93\%, un réseau composé d'une couche cachée de 400 neurones ayant pour fonction d'activation tangente hyperbolique pourra avoir sur ce même ensemble presque 98\% de précision. Le résultat de cette seconde situation est visible en figure \ref{mnist100}. On y remarque que l'ensemble de données est très rapidement complètement appris.
 \begin{figure}[!h]
 \begin{center}
-\includegraphics[scale=0.5]{images/mnist100.png}
+\includegraphics[scale=0.5]{images/chapter4/mnist100.png}
 \caption{Précision pour un réseau avec une couche cachée de 400 neurones}
 \label{mnist100}
 \end{center}
@@ -84,7 +83,7 @@ Si les initialisations centrées en 0 permettent une convergence un petit peu pl
 
 \begin{figure}[!h]
 \begin{center}
-\includegraphics[scale=0.2]{images/initialisationpoids_amplitude01.png}
+\includegraphics[scale=0.2]{images/chapter4/initialisationpoids_amplitude01.png}
 \caption{Précision sur les ensembles de test (en noir) et d'apprentissage (en rouge) en fonction du nombre d'exemples utilisés pour l'apprentissage pour une initialisation des poids d'amplitude 0.1 }
 \label{initialisationpoids_amplitude0.1}
 \end{center}
@@ -92,7 +91,7 @@ Si les initialisations centrées en 0 permettent une convergence un petit peu pl
 
 \begin{figure}[!h]
 \begin{center}
-\includegraphics[scale=0.2]{images/initialisationpoids_amplitude10.png}
+\includegraphics[scale=0.2]{images/chapter4/initialisationpoids_amplitude10.png}
 \caption{Précision sur les ensembles de test (en noir) et d'apprentissage (en rouge) en fonction du nombre d'exemples utilisés pour l'apprentissage pour une initialisation des poids d'amplitude 0.1}
 \label{initialisationpoids_amplitude10}
 \end{center}
@@ -103,51 +102,73 @@ On peut ainsi bien observer que dans le cas du facteur multiplicatif de 10, la c
 
 
 
-\subsection{Choix des fonctions d'activations et de coût}
+\subsection{Choix des fonctions d'activations et de coût} 
+ 
+Le tableau \ref{influence_fonction_cout} présente quelques résultats sur la précision obtenu par le réseau selon les fonctions de coût et les fonctions en sortie utilisées.\\ 
+\begin{center} 
+\begin{tabular}{|c|c|c|c|c|} 
+\hline 
+Sortie & \multicolumn{2}{| c |}{Softmax} & \multicolumn{2}{|c|}{Sigmoïde}\\ 
+\hline 
+Fonction & Entropie & Erreur & Entropie & Erreur \\ 
+de coût & croisée & quadratique & croisée & quadratique\\ 
+\hline 
+Moyenne & 0,92303 & 0,92667 & 0,9149 & 0,91708\\ 
+\hline 
+Écart-type & 0,00033350 & 0,00056578 & 0,00025820 & 0,00028597\\ 
+\hline 
+Intervalle 95\% & 0,00020670 & 0,00035067 & 0,00016003 & 0,000177242\\ 
+\hline 
+\end{tabular} 
+\captionof{table}{Influence de la fonction de coût} 
+\label{influence_fonction_cout} 
+\end{center} 
+ 
+Le choix de la fonction de coût ne semble avoir qu'un impact très mineur sur les résultats obtenus par le réseau. L'erreur quadratique présente des performances légèrement supérieures à l'entropie croisée pour ce problème mais cette différence est très faible. 
+ 
+En revanche il apparait que l'utilisation de la fonction Softmax en sortie donne de meilleurs résultats que celle d'une sigmoïde. L'emploi de Softmax entrainant un cout en temps plus important que celui de Sigmoïde, cet avantage est à relativiser. 
+ 
+\subsection{Taille des batchs et nombre de passages} 
+ 
+La taille d'un batch est le nombre d'exemples que l'on insère dans le réseau entre chaque rétropropagation du gradient.\\ 
+ 
+ 
+\begin{figure}[!h] 
+\begin{center} 
+\includegraphics[scale=0.5]{images/chapter4/precision_taille_batch.png} 
+\caption{Influence de la taille du batch} 
+\label{precision_taille_batch} 
+\end{center} 
+\end{figure} 
+ 
+\begin{figure}[!h] 
+\begin{center} 
+\includegraphics[scale=0.5]{images/chapter4/precision_batch_temps.png} 
+\caption{Influence de la taille du batch sur le temps de calcul} 
+\label{precision_batch_temps} 
+\end{center} 
+\end{figure} 
+ 
+La figure \ref{precision_taille_batch} présente la précision obtenue pour différentes tailles de batch. La figure \ref{precision_batch_temps} présente ces mêmes données mais réparties en fonction du temps de calcul.\\ 
 
-Le tableau \ref{influence_fonction_cout} présente quelques résultats sur la précision obtenu par le réseau selon les fonctions de coût et les fonctions en sortie utilisées.
-\begin{figure}[!h]
-\begin{center}
-\includegraphics[scale=0.6]{images/influence_fonction_cout.png}
-\caption{Influence de la fonction de coût sur la précision obtenue par le réseau}
-\label{influence_fonction_cout}
-\end{center}
-\end{figure}
-Le choix de la fonction de coût ne semble avoir qu'un impact très mineur sur les résultats obtenus par le réseau. L'erreur quadratique présente des performances légèrement supérieures à l'entropie croisée pour ce problème mais cette différence est très faible.
-
-En revanche il apparait que l'utilisation de la fonction Softmax en sortie donne de meilleurs résultats que celle d'une sigmoïde. L'emploi de Softmax entrainant un cout en temps plus important que celui de Sigmoïde, cet avantage est à relativiser.
-
-
-\subsection{Taille des batchs et nombre de passages}
-
-La taille d'un batch est le nombre d'exemples que l'on insère dans le réseau entre chaque rétropropagation du gradient.
-
-\begin{figure}[!h]
-\begin{center}
-\includegraphics[scale=0.5]{images/precision_taille_batch.png}
-\caption{Influence de la taille du batch}
-\label{precision_taille_batch}
-\end{center}
-\end{figure}
-
-La figure \ref{precision_taille_batch} présente la précision obtenue pour différentes tailles de batch. On remarque qu'au delà de 150,augmenter la taille du batch n'améliore presque plus les performances du réseau.
-La figure \ref{precision_batch_temps} présente les mêmes données que la figure \ref{precision_taille_batch} mais répartis en fonction du temps de calcul. Utiliser des batchs plus petits semble être plus efficace pour l'apprentissage des données mnist.
-
-\begin{figure}[!h]
-\begin{center}
-\includegraphics[scale=0.5]{images/precision_batch_temps.png}
-\caption{Influence de la taille du batch sur le temps de calcul}
-\label{precision_batch_temps}
-\end{center}
-\end{figure}
-
+On retrouve les principales influences de l'utilisation d'une descente de gradient par batch plutôt que stochastique. En effet, plus le batch est de taille faible, plus le réseau va apprendre rapidement et converger vers sa précision finale dans un temps de calcul réduit. En revanche, utiliser des batchs permet d'améliorer la précision finale et la stabilité des résultats. \\
+ 
+La dernière figure \ref{efficacite_batch} présente, pour l'apprentissage des $60000$ données de l'ensemble d'apprentissage de mnist, les précisions moyennées sur 20 tests en fonction de la taille du batch utilisé. On retrouve bien le plus grands écart-types pour des petits batchs. La taille de batch optimale pour le problème mnist avec notre configuration peut donc être estimée à 50. 
+ 
+\begin{figure}[!h] 
+\begin{center} 
+\includegraphics[scale=0.7]{images/chapter4/efficacite_batch.png} 
+\caption{Influence de la taille du batch sur la précision} 
+\label{efficacite_batch} 
+\end{center} 
+\end{figure} 
 
 \subsection{Taux d'apprentissage}
 Nous avons aussi étudié l'influence du taux d'apprentissage ou learning rate. En effet celui-ci influe sur la mise à jour des poids : plus il est grand et plus chaque l'importance donnée au calcul de la dérivée est important. Avoir un taux d'apprentissage grand permet d’obtenir rapidement des performances satisfaisantes en termes de précision. Au contraire, des phénomènes d'oscillations sont observés pour un apprentissage conséquent, et cela fournit en retour de moins bons résultats, par rapport à des taux d'apprentissage plus faibles. Cela a été illustré sur la figure \ref{influence_learningrate}.
 
 \begin{figure}[!h]
 \begin{center}
-\includegraphics[scale=0.6]{images/influence_learningrate.png}
+\includegraphics[scale=0.6]{images/chapter4/influence_learningrate.png}
 \caption{Influence du learning rate sur la précision sur l'ensemble de test en fonction du nombre d'exemple utilisés}
 \label{influence_learningrate}
 \end{center}
