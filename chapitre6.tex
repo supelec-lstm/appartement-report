@@ -20,7 +20,7 @@ Dans le cadre des LSTM, nous utilisons une nouvelle cellule de base afin d'évit
 \newpage
 
 \section{Principe de fonctionnement}
-Comme pour les réseaux récurrents, on peut déplier les LSTM afin de se ramener à une cellule de base qui se répète. Le principe des LSTM repose sur l'existence d'un état qui apparaît tout en haut de la cellule et qui subit seulement quelques modifications linéaires. Cela permettra ainsi, lors de la rétropropagation du gradient, de ne pas perdre la dépendance avec les informations lointaines.
+Comme pour les réseaux récurrents, on peut déplier les LSTM (suivant la méthode utilisée dans BPTT) afin de se ramener à une cellule de base qui se répète. Le principe des LSTM repose sur l'existence d'un état qui apparaît tout en haut de la cellule et qui subit seulement quelques modifications linéaires. Cela permettra ainsi, lors de la rétropropagation du gradient, de ne pas perdre la dépendance avec les informations lointaines.
 
 La cellule de base des LSTM peut donc être représentée par la figure suivante.
 
@@ -57,11 +57,11 @@ La sortie de la cellule est obtenue à partir du cell state auquel on applique u
 
 En pratique, on n'est pas sûr qu'une cellule LSTM suive effectivement le principe décrit précédemment. Celui-ci est plutôt une illustration afin de comprendre de manière générale le fonctionnement des LSTM.
 
-La structure d'une cellule LSTM n'est pas non figée. En effet, il est possible de l'adapter en ajoutant, enlevant certains éléments, gates. Par exemple, on peut ajouter une forget gate composée d'une couche de sigmoides au début de la cellule. On multiplie la sortie de cette forget gate afin de garder, supprimer, réduire certaines composantes du cell state. 
+La structure d'une cellule LSTM n'est pas figée. Il est possible de l'adapter en ajoutant ou en enlevant certains éléments, gates. Par exemple, on peut ajouter une forget gate composée d'une couche de sigmoides au début de la cellule. On multiplie la sortie de cette forget gate afin de garder, supprimer ou réduire certaines composantes du cell state. 
 
 \break
 
-Dans le cas d'une cellule LSTM, les équations de propagation sont simples à calculer. En effet, comme pour le graphe de calcul, les équations sont directement données par le schéma.
+Dans le cas d'une cellule LSTM, les équations de propagation sont simples à expliciter. En effet, comme pour le graphe de calcul, les équations sont directement données par le schéma.
 
 Pour la bakcpropagation du gradient, il est toutefois nécessaire de calculer les formules à utiliser dans l'algorithme. La figure \ref{cellule LSTM gradient} fait apparaître le gradient à chaque endroit de la cellule.
 
@@ -74,7 +74,7 @@ Pour la bakcpropagation du gradient, il est toutefois nécessaire de calculer le
 \end{figure}
 
 
-En utilisant, BPTT pour rétropropager le gradient sur le graphe du LSTM déplié, on obtient les formules suivantes :
+En utilisant, BPTT pour rétropropager le gradient sur le graphe de la cellule LSTM dépliée, on obtient les formules suivantes :
 
 \begin{equation}
 \varepsilon_{S(t-1)} = \frac{\partial J}{\partial S(t)} = \varepsilon_{S(t)} + F_{l}^{\prime}\text{diag}(o)\frac{\partial J}{\partial H(t)}
@@ -132,7 +132,7 @@ x(t)
 \left(F_{g}^{\prime}\text{diag}(i)\frac{\partial J}{\partial S(t)}\right)^{T}
 \end{equation}
 
-On rétropropage le gradient dans tout le graphe déplié avec les formules précédentes. Celui-ci est à chaque fois accumulé au niveau des poids. Les poids $W_{o}$, $W_{i}$ et $W_{g}$ sont alors mis à jour avec la formule :
+On rétropropage le gradient dans tout le graphe déplié avec les formules précédentes. Celui-ci est à chaque fois accumulé au niveau des poids. Les poids $W_{o}$, $W_{i}$ et $W_{g}$ sont alors mis à jour selon la formule :
 
 \begin{equation}
 W = W - \eta \sum{\frac{\partial J}{\partial W}}
@@ -142,8 +142,6 @@ W = W - \eta \sum{\frac{\partial J}{\partial W}}
 
 Une première implémentation des LSTM a été réalisé en conservant le plus possible le concept de cellule indépendante. Ainsi une classe Weights contient tous les poids de la cellule et la classe Lstmcell se contentera elle de calculer la propagation et la rétropropagation (Voir Figure 4.4 de la cellule LSTM pour situer les poids).
 
-Si cette implémentation intuitive fonctionne et donne des résultats satisfaisants, elle n'est cependant pas très adaptée à la création de réseaux de cellules LSTM. C'est pour cela que nous nous sommes lancés dans une seconde implémentation, plus pratique et flexible.
-
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.8]{images/chapter6/UML_LSTM_Implementation_1.png}
@@ -151,6 +149,10 @@ Si cette implémentation intuitive fonctionne et donne des résultats satisfaisa
 \label{cellule LSTM UML 1}
 \end{center}
 \end{figure}
+
+Si cette implémentation intuitive fonctionne et donne des résultats satisfaisants, elle n'est cependant pas très adaptée à la création de réseaux de cellules LSTM. C'est pour cela que nous nous sommes lancés dans une seconde implémentation, plus pratique et flexible.
+
+
 
 \section{Implémentation avec des nœuds}
 
@@ -166,7 +168,7 @@ L'objectif est de créer un n\oe{}ud à trois entrées et à deux sorties comme 
 \end{center}
 \end{figure}
 
-Deux solutions s'offraient à nous. On pouvait réutiliser les équations de propagation et de rétropropagation décrite dans la section précédente. Cette solution a l'inconvénient qu'il est nécessaire de dériver à la main les formules de propagation et de rétropropagation à chaque fois que l'on veut changer l'architecture de la cellule LSTM. On n'atteint donc pas l'objectif de flexibilité.
+Deux solutions s'offraient à nous. On pouvait réutiliser les équations de propagation et de rétropropagation décrite dans la section précédente. Cette solution a l'inconvénient de nécessiter un calcul à la main des formules de propagation et de rétropropagation à chaque fois que l'on veut changer l'architecture de la cellule LSTM. On n'atteint donc pas l'objectif de flexibilité.
 
 L'autre solution consiste à exprimer le n\oe{}ud LSTM en fonction d'autres n\oe{}uds élémentaires que nous avons définis dans la partie \ref{comp_graph_part}. Comme cela, le gradient sera calculé automatiquement par les n\oe{}uds. Afin de créer un tel n\oe{}uds, nous avons défini une classe \textit{CompositeNode} qui est basée sur le design pattern Composite. Il s'agit d'une classe fille de la classe \textit{Node} qui a comme attributs d'autres n\oe{}uds. La classe \textit{LSTMNode} est alors une classe fille de la classe \textit{CompositeNode}.
 
@@ -175,7 +177,7 @@ La figure \ref{lstm_node_micro} présente les n\oe{}uds qui composent la cellule
 \begin{figure}[h!]
 \begin{center}
 \input{images/chapter6/lstm_node.tex}
-\caption{Cellule LSTM comme n\oe{}ud composite. Elle est composée d'autres n\oe{}uds que nous avons définis auparavant dans la partie \ref{comp_graph_part}}
+\caption{Cellule LSTM comme n\oe{}ud composite. Elle est composée d'autres n\oe{}uds que nous avons définis précédemment dans la partie \ref{comp_graph_part}}
 \label{lstm_node_micro}
 \end{center}
 \end{figure}
@@ -184,19 +186,18 @@ Grâce à cette architecture nous avons pu tester différentes variantes de la c
 
 \section{Résultats}
 
-Nous avons donc pu soumettre des cellules LSTM à l'apprentissage de la grammaire symétrique de Reber. 
+Nous nous sommes intéressés à l'apprentissage de la grammaire symétrique de Reber par des cellules LSTM. 
 
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.5]{images/chapter6/LSTM_Reber_Sym.png}
-\caption{Résultats de l'apprentissage de la grammaire de Reber symétrique pour une cellule LSTM, moyenné sur 100 essais
-\ref{lsmt_reber_sym}}
+\caption{Résultats de l'apprentissage de la grammaire de Reber symétrique pour une cellule LSTM, moyenné sur 100 essais}
 \label{Reber_Sym_LSTM}
 \end{center}
 \end{figure}
 
-Sur la courbe de la figure \ref{Reber_Sym_LSTM} , il évident qu'une cellule LSTM seule peut apprendre parfaitement une grammaire de Reber symétrique, ce qui n'était pas le cas des réseaux de neurones simples utilisant les algorithmes RTRL et BPTT. En effet ces réseaux ne pouvaient que prédire la moitié des transitions (voir la courbe \ref{Reber_Sym_RTRL_BPTT} ).
+Sur la courbe de la figure \ref{Reber_Sym_LSTM} , il apparait clairement qu'une cellule LSTM seule peut apprendre parfaitement la grammaire de Reber symétrique. Ceci n'était pas le cas des réseaux de neurones récurrents totalement connectés, que ce soit en utilisant les algorithmes RTRL et BPTT. En effet ces réseaux ne pouvaient que prédire la moitié des transitions (voir la courbe \ref{Reber_Sym_RTRL_BPTT} ).
+On peut également noter que l'apprentissage se fait très rapidement et reste stable. 
 
-Les LSTM peuvent donc apprendre parfaitement une grammaire de Reber au contraire des deux algorithmes appliqués à des réseaux récurrents simples. On peut aussi noter que que l'apprentissage se fait très rapidement et de manière efficace. 
-
-Cela montre bien la force des LSTM qui peuvent donc prendre en compte de manière efficace le contexte afin de prédire une suite à ce contexte. C'est dans ce cadre là que nous nous sommes penchés vers la génération de séquence afin de pouvoir vraiment tester les possibilités offertes par cette structure.
+\section{Conclusion}
+Ces résultats montrent bien la force des LSTM qui peuvent prendre en compte de manière efficace un contexte afin de prédire la suite d'une séquence. C'est dans ce cadre que nous nous sommes penchés vers la génération de séquence afin de pouvoir vraiment tester les possibilités offertes par cette structure.

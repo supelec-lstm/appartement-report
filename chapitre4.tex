@@ -27,8 +27,6 @@ Nous avons principalement étudié l'influence de l'architecture du réseau sur 
 
 La figure \ref{xor_architecture_tanh} présente la précision obtenue pour des structures d'une seule couche cachée avec un nombre variable de neurones de fonction d'activation tanh. Moins le réseau possède de neurones sur sa couche cachée, plus il a besoin d'apprendre sur un nombre important d'itérations. Cependant, avec seulement deux neurones sur la couche cachée, l'apprentissage se fait déjà relativement rapidement et le gain obtenu en ajoutant des états cachés n'est pas vraiment significatif puisqu'il ajoute un coût temporel de calcul.\\
 
-Cette même étude réalisée dans les mêmes conditions en remplaçant simplement la fonction d'activation tangente hyperbolique par une ReLu donne des résultats complètement différents visible en figure \ref{xor_architecture_relu}. Ici, la taille de la couche cachée prend beaucoup plus d'importance puisqu'elle devient le paramètre principal pour obtenir une précision parfaite rapidement. En effet, même si augmenter le nombre d'itérations permet à des architectures avec peu d'états cachés permet d'améliorer la précision du réseau, cette amélioration est très lente. \`A l'inverse le réseau apprend presque instantanément lorsque l'on augmente le nombre d'états cachés.\\
-
 \begin{figure}[!h]
 \begin{center}
 \includegraphics[scale=0.6]{images/chapter4/xor_architecture_tanh.png}
@@ -36,6 +34,8 @@ Cette même étude réalisée dans les mêmes conditions en remplaçant simpleme
 \label{xor_architecture_tanh}
 \end{center}
 \end{figure}
+
+Cette même étude réalisée dans les mêmes conditions en remplaçant simplement la fonction d'activation tangente hyperbolique par une ReLu donne des résultats complètement différents visible en figure \ref{xor_architecture_relu}. Ici, la taille de la couche cachée prend beaucoup plus d'importance puisqu'elle devient le paramètre principal pour obtenir une précision parfaite rapidement. En effet, même si augmenter le nombre d'itérations permet à des architectures avec peu d'états cachés permet d'améliorer la précision du réseau, cette amélioration est très lente. \`A l'inverse le réseau apprend presque instantanément lorsque l'on augmente le nombre d'états cachés.\\
 
 \begin{figure}[!h]
 \begin{center}
@@ -50,7 +50,7 @@ L'exemple de ces deux situations représente clairement les problèmes rencontr�
 \section{\'Etude de MNIST}
 
 \subsection{Introduction}
-Dans cette partie, mis à part les paramètres explicitement précisés pour un exemple, toutes les mesures qui vont être présentées furent réalisées en utilisant les paramètres suivants :
+Dans cette partie, mis à part les paramètres explicitement précisés pour un exemple, toutes les mesures qui vont être présentées ont été réalisées en utilisant les paramètres suivants :
 \begin{itemize}
 \item Pas de couche cachée, les neurones d'entrée sont directement reliés aux sorties
 \item Les entrées sont centrées et normalisées : chaque pixel est alors représenté par une valeur de [-1;1]
@@ -78,8 +78,8 @@ Ainsi, alors qu'un apprentissage effectué sans couche cachée sur 30 passages d
 \subsection{Initialisation des poids}
 Avant le lancement de l'algorithme sur un réseau de neurone, il est nécessaire d'initialiser les poids. L'usage le plus courant est de les initialiser aléatoirement. Cependant, le choix de la distribution aléatoire n'est pas forcément évident. En effet, on peut choisir d'utiliser une distribution uniforme, une distribution gaussienne ou tout autre type de distribution aléatoire avec des paramètres variables.
 
-Nous avons donc testé trois types de fonction d'initialisation des poids : une répartition uniforme, une répartition uniforme centrée en 0  et une répartition gaussienne centrée en 0.
-Si les initialisations centrées en 0 permettent une convergence un petit peu plus rapide, ces trois initialisations produisent des résultats similaires. Cependant, l'amplitude des poids change beaucoup les résultats quelle que soit la fonction d'initialisation. En effet, les poids convergeant lors de l'apprentissage vers de petites valeurs, une initialisation avec de petites amplitudes va permettre une convergence plus rapide.
+Nous avons donc testé trois types de fonction d'initialisation des poids : une répartition uniforme entre 0 et 1, une répartition uniforme centrée en 0  et une répartition gaussienne centrée en 0.
+Si les initialisations centrées en 0 permettent une convergence un peu plus rapide, ces trois initialisations produisent des résultats similaires. Cependant, l'amplitude des poids change beaucoup les résultats quelle que soit la fonction d'initialisation. En effet, les poids convergeant lors de l'apprentissage vers de petites valeurs, une initialisation avec de petites amplitudes va permettre une convergence plus rapide.
 
 \begin{figure}[!h]
 \begin{center}
@@ -98,7 +98,7 @@ Si les initialisations centrées en 0 permettent une convergence un petit peu pl
 \end{figure}
 
 C'est ce que l'on peut voir sur les deux figures \ref{initialisationpoids_amplitude0.1} et \ref{initialisationpoids_amplitude10}. Dans les deux cas, les poids sont initialisés selon une loi normale centrée de variance 0,1. Cependant, sur la première, un coefficient multiplicatif de 0,1 leur est affecté alors que celui-ci est de 10 sur la deuxième.
-On peut ainsi bien observer que dans le cas du facteur multiplicatif de 10, la convergence est plus lente au début de l'apprentissage, même si l'on atteint sensiblement les mêmes valeurs finales de précision.
+On peut ainsi bien observer que dans le cas du facteur multiplicatif de 10, la convergence est plus lente au début de l'apprentissage, même si on atteint sensiblement les mêmes valeurs finales de précision.
 
 
 
@@ -151,7 +151,7 @@ La taille d'un batch est le nombre d'exemples que l'on insère dans le réseau e
  
 La figure \ref{precision_taille_batch} présente la précision obtenue pour différentes tailles de batch. La figure \ref{precision_batch_temps} présente ces mêmes données mais réparties en fonction du temps de calcul.\\ 
 
-On retrouve les principales influences de l'utilisation d'une descente de gradient par batch plutôt que stochastique. En effet, plus le batch est de taille faible, plus le réseau va apprendre rapidement et converger vers sa précision finale dans un temps de calcul réduit. En revanche, utiliser des batchs permet d'améliorer la précision finale et la stabilité des résultats. \\
+On retrouve bien les comportements caractéristiques des descentes de gradient par batch et stochastique. En effet, plus le batch est de taille faible, plus le réseau va apprendre rapidement et converger vers sa précision finale dans un temps de calcul réduit. En revanche, utiliser des batchs permet d'améliorer la précision finale et la stabilité des résultats. \\
  
 La dernière figure \ref{efficacite_batch} présente, pour l'apprentissage des $60000$ données de l'ensemble d'apprentissage de mnist, les précisions moyennées sur 20 tests en fonction de la taille du batch utilisé. On retrouve bien le plus grands écart-types pour des petits batchs. La taille de batch optimale pour le problème mnist avec notre configuration peut donc être estimée à 50. 
  
@@ -164,7 +164,7 @@ La dernière figure \ref{efficacite_batch} présente, pour l'apprentissage des $
 \end{figure} 
 
 \subsection{Taux d'apprentissage}
-Nous avons aussi étudié l'influence du taux d'apprentissage ou learning rate. En effet celui-ci influe sur la mise à jour des poids : plus il est grand et plus chaque l'importance donnée au calcul de la dérivée est important. Avoir un taux d'apprentissage grand permet d’obtenir rapidement des performances satisfaisantes en termes de précision. Au contraire, des phénomènes d'oscillations sont observés pour un apprentissage conséquent, et cela fournit en retour de moins bons résultats, par rapport à des taux d'apprentissage plus faibles. Cela a été illustré sur la figure \ref{influence_learningrate}.
+Nous avons aussi étudié l'influence du taux d'apprentissage ou learning rate. En effet celui-ci influe sur la mise à jour des poids : plus il est grand et plus l'importance donnée au calcul de la dérivée est grande. Avoir un taux d'apprentissage grand permet d’obtenir rapidement des performances satisfaisantes en termes de précision, mais des phénomènes d'oscillations sont observés pour un apprentissage conséquent. Cela a été illustré sur la figure \ref{influence_learningrate}.
 
 \begin{figure}[!h]
 \begin{center}
@@ -182,3 +182,6 @@ Nous pouvons alors distinguer trois cas reflétant les principaux comportements 
 \item Pour un taux d'apprentissage de 100, la convergence est très rapide au début, mais oscille beaucoup et va finalement bloquer l'apprentissage vers un autre minimum local de coût non désiré. On peut donc considérer ce taux d'apprentissage comme trop grand.
 \item Pour un taux d'apprentissage de 0.1, il semble apparaître un bon compromis entre stabilité et vitesse de la convergence. C'est cette valeur qui en général sera choisie pour les tests, bien que d'autres soient satisfaisants (0.8 ou 1 par exemple).
 \end{itemize}
+
+\section{Conclusion}
+Bien qu'aucune règle générale ne puisse être déduite de cette étude, on a pu identifier certains comportements relatifs aux réglages des paramètres. L'optimisation de ces paramètres devra se faire empiriquement au cas par cas, en suivant l'intuition qui découle des résultats obtenus ici.

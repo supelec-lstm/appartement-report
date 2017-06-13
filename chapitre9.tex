@@ -2,15 +2,25 @@
 
 \section{Introduction}
 
-La deuxième application des LSTM à laquelle nous nous sommes intéressés consistait en la génération de musique. Pour cela, nous avons envisagé quatre approches. La première n'est pas directement liée à la musique. En effet, on utilise alors le format abc qui représente un morceau de musique sous forme de texte. La génération se fait alors simplement en appliquant ce que l'on a fait avec Shakespeare. La deuxième méthode consiste à utiliser le format midi. Celui-ci permet de représenter simplement l'état des notes à chaque instant. La troisième méthode s'appuie sur l'utilisation de partitions qui permettent de retranscrire efficacement un morceau de musique. Dans ce cas-là, on génère directement une partition. Enfin, la dernière méthode consiste à exploiter un signal sonore. Cela permet d'utiliser tout type de son. \\
-Quelle que soit la stratégie utilisée, il convient de trouver une base de données suffisamment fournie afin de pouvoir entraîner le réseau dessus. Il est assez difficile de trouver des fichiers abc sur différents styles de musique. En revanche, il existe plusieurs bases de données réunissant de nombreux fichiers midi. Enfin, l'utilisation de signaux permet de s'affranchir de ces problèmes puisqu'il est alors possible d'utiliser n'importe quel fichier sonore (wav, mp3, ...). Des convertisseurs existent afin de passer d'un format à l'autre, mais ceux-ci sont plus ou moins efficaces.
+La deuxième application des LSTM à laquelle nous nous sommes intéressés consiste à générer de la musique. Pour cela, nous avons envisagé quatre approches:
+\begin{itemize}
+\item La première n'est pas directement liée à la musique. En effet, on utilise alors le format abc qui représente un morceau de musique sous forme de texte. La génération se fait alors simplement en appliquant ce que l'on a fait avec Shakespeare.
+
+\item La deuxième méthode consiste à utiliser le format midi. Celui-ci permet de représenter simplement l'état des notes à chaque instant.
+
+\item La troisième méthode s'appuie sur l'utilisation de partitions qui permettent de retranscrire efficacement un morceau de musique. Dans ce cas-là, on génère directement une partition.
+
+\item Enfin, la dernière méthode consiste à exploiter un signal sonore. Cela permet d'utiliser tout type de fichiers audio.
+\end{itemize}     
+
+Quelle que soit la stratégie utilisée, il convient de trouver une base de données suffisamment fournie afin de pouvoir entraîner le réseau. Il est assez difficile de trouver des fichiers abc pour des styles de musique variés. En revanche, il existe plusieurs bases de données réunissant de nombreux fichiers midi. Enfin, l'utilisation de signaux sonores permet de s'affranchir de ces problèmes puisqu'il est alors possible d'utiliser n'importe quel fichier audio (wav, mp3, ...). Des convertisseurs existent afin de passer d'un format à l'autre, mais ceux-ci sont plus ou moins efficaces.
 
 \section{Génération en abc}
 
 \subsection{Présentation du format}
 
 Le langage abc permet de représenter un morceau de musique en format ASCII. Il s'est rapidement développé grâce à sa facilité de représentation et de compatibilité entre les différents systèmes d'exploitation. De plus, ce langage ne nécessite pas l'utilisation d'un ordinateur pour être lu, contrairement au midi. Ainsi, les morceaux sont représentés de manière simple, efficace et compacte. \\
-Un fichier abc est composé de deux parties : un entête et le corps de la musique.
+Un fichier abc est composé de deux parties : une entête et le corps de la musique.
 L'entête permet de définir les caractéristiques globales du morceau :
 \begin{itemize}
 \item X : numéro du morceau dans le fichier
@@ -20,7 +30,7 @@ L'entête permet de définir les caractéristiques globales du morceau :
 \item K : tonalité
 \item P : ordre dans lequel les sections sont jouées
 \end{itemize}
-Le corps correspond à l'écriture du morceau. Les notes sont représentées dans le système anglo-saxon : a=la; b=si; c=do; d=ré; e=mi; f=fa; g=sol. Le choix des majuscules/minuscules et des symboles "," et "'" permettent de choisir les octaves utilisées. Les guillemets servent à écrire les accords. Les séparateurs sont utilisés pour les mesures et on peut spécifier les parties répétées. La figure \ref{fichier_abc_jig_exemple} est l'exemple d'une jig en format abc qui sera utilisée lors de l'apprentissage. 
+Le corps correspond à l'écriture du morceau. Les notes sont représentées dans le système anglo-saxon : a=la; b=si; c=do; d=ré; e=mi; f=fa; g=sol. Le choix des majuscules/minuscules et des symboles "," et "'" permettent de choisir les octaves utilisées. Les guillemets servent à écrire les accords. Les séparateurs sont utilisés pour les mesures et on peut spécifier les parties répétées. La figure \ref{fichier_abc_jig_exemple} est l'exemple d'une gigue en format abc qui sera utilisée lors de l'apprentissage. 
 
 \begin{figure}[!h]
 \begin{verbatim}
@@ -42,10 +52,10 @@ A|"D" def fed|"G" BdB AFD| "D"DFA "G"B2 A|"Em" cee "A7" e2 A|
 
 \subsection{Principe}
 Étant donné que les morceaux de musique sont représentés sous forme de texte, on adopte un système d'apprentissage similaire à celui utilisé avec Shakespeare. \\
-On utilise une cellule LSTM que l'on fait apprendre sur des séquences de longueur 50. Cela revient à déplier le réseau 50 fois à chaque apprentissage. Pour améliorer la rapidité et la convergence, on travaille avec des batchs de 50 séquences. L'algorithme d'optimisation choisi est RMSprop qui nous a donné les meilleurs résultats sur Shakespeare.
+On utilise une cellule LSTM qu'on entraine sur des séquences de 50 caractères de long. Cela revient à déplier le réseau 50 fois à chaque apprentissage. Pour améliorer la rapidité et la convergence, on travaille avec des batchs de 50 séquences. L'algorithme d'optimisation choisi est RMSprop qui nous a donné les meilleurs résultats sur Shakespeare.
 
 \subsection{Résultats}
-Dans un premier temps, on réalise l'apprentissage sur un ensemble de 340 jigs trouvé sur une base de données de morceaux en abc. Le réseau arrive rapidement à apprendre la structure du format abc. De plus, les caractéristiques communes des jigs sont bien apprises; mélodie, accompagnement. La figure \ref{jig_generee_abc} est un exemple de jig générée avec notre réseau au format abc. Il existe des convertisseur abc/midi qui nous permettent de vérifier la cohérence du morceau généré. On voit ainsi que le réseau a très bien appris la structure des jigs, peut-être même trop bien, puisque certaines parties des morceaux générés sont quasiment identiques à des passages de la base de données d'apprentissage. Il arrive parfois que le texte généré présente quelques erreurs dans le format abc. Les convertisseurs sont en général capables de les corriger automatiquement voire d'ignorer les séquences absurdes.
+Dans un premier temps, on réalise l'apprentissage sur un ensemble de 340 gigues trouvé sur une base de données de morceaux en abc. Le réseau arrive rapidement à apprendre la structure du format abc. De plus, les caractéristiques communes des gigues sont bien apprises (mélodie, accompagnement). La figure \ref{jig_generee_abc} est un exemple de gigue générée avec notre réseau au format abc. Il existe des convertisseur abc/midi qui nous permettent de vérifier la cohérence du morceau généré. On voit ainsi que le réseau a très bien appris la structure des gigue, peut-être même trop bien, puisque certaines parties des morceaux générés sont quasiment identiques à des passages de la base de données d'apprentissage. Il arrive parfois que le texte généré présente quelques erreurs dans le format abc. Les convertisseurs sont en général capables de les corriger automatiquement voire d'ignorer les séquences absurdes.
 
 \begin{figure}[!h]
 \begin{verbatim}
@@ -68,20 +78,20 @@ c|"Dm"d2e e3|"D7"dcB "F"dcf|
 "D" "Dm"def "G/b"gge "D"f2B|"G"gfg gfg|edc AGG|"G"Bdg efd|"Am"eAA 
 "D7"ABc|"G"B3 -B2B|Bdd G3:|
 \end{verbatim}
-\caption{Exemple d'une jig générée}
+\caption{Exemple d'une gigue générée}
 \label{jig_generee_abc}
 \end{figure}
 
-Cette méthode de génération est assez efficace et facile à mettre en oeuvre. Cependant, elle est assez limitée puisque l'on n'utilise qu'une représentation textuelle de la musique. Pour des morceaux plus complexes, comme Mozart, le réseaux a bien plus de mal à apprendre la structure de base du format. \\
+Cette méthode de génération est efficace et facile à mettre en œuvre. Cependant, elle est assez limitée puisque l'on n'utilise qu'une représentation textuelle de la musique. Pour des morceaux plus complexes, comme des œuvres symphoniques, le réseaux a bien plus de mal à apprendre la structure de base. \\
 On essaiera par la suite de proposer des méthodes d'apprentissage et de représentation des morceaux plus proches de la musique.
 
 \section{Génération en midi}
 
 \subsection{Présentation du format}
 
-Le format midi utilise une représentation binaire. Un ensemble d'événements permet de décrire entièrement le morceau. On distingue les MetaMessages qui permettent de donner des informations d'ordre général sur la mélodie telles que le titre, la durée, le tempo, ... Il existe aussi les Messages qui décrivent la succession des événements tout au long du morceau, comme l'activation ou la désactivation de notes. Un morceau peut être décomposé en plusieurs tracks. Ceux-ci se partagent alors les différents voix : mélodie, accompagnement, ... 
+Le format midi utilise une représentation binaire. Un ensemble d'événements permet de décrire entièrement le morceau. On distingue les MetaMessages qui permettent de donner des informations d'ordre général sur la mélodie (titre, la durée, le tempo, ...) des messages qui décrivent la succession des événements tout au long du morceau, comme l'activation ou la désactivation de notes. Un morceau peut être décomposé en plusieurs tracks. Ceux-ci se partagent alors les différents voix : mélodie, accompagnement, ... 
 
-On utilisera la bibliothèque $mido$ sous Python qui permet de représenter le format midi sous la forme d'une succession d'événements. Chaque message s'écrit alors de la manière suivante $événement\ paramètres\ time$. $time$ permet de définir après quel délai par rapport à l'événement précédent l'événement courant a lieu. Dans notre situation, on s'intéressera à l'exploitation des événements $note\_on\ note\ velocity\ time$ et $note\_off\ note\ velocity\ time$. Ceux-ci permettent d'activer ou de désactiver une note. On peut aussi préciser l'intensité de la note comprise entre 0 et 127. Dans notre cas, on considère que l'intensité vaut 0 lorsque l'on éteint la note. En réalité, elle permet de préciser de quelle manière on relâche la note (rapidement ou si on laisse un peu durer). Les notes sont elles aussi numéroter de 0 à 127. Le tableau \ref{tableau_notes} donne la correspondance entre les notes et leur numéro dans la représentation midi.
+On utilisera la bibliothèque $mido$ sous Python qui permet de représenter le format midi sous la forme d'une succession d'événements. Chaque message s'écrit alors de la manière suivante $événement\ paramètres\ time$. $time$ permet de définir après quel délai par rapport à l'événement précédent l'événement courant a lieu. Dans notre situation, on s'intéressera à l'exploitation des événements $note\_on\ note\ velocity\ time$ et $note\_off\ note\ velocity\ time$. Ceux-ci permettent d'activer ou de désactiver une note. On peut aussi préciser l'intensité de la note comprise entre 0 et 127. Dans notre cas, on considère que l'intensité vaut 0 lorsque l'on éteint la note. En réalité, elle permet de préciser de quelle manière on relâche la note (rapidement ou si on laisse un peu durer). Les notes sont elles aussi numérotées de 0 à 127. Le tableau \ref{tableau_notes} donne la correspondance entre les notes et leur numéro dans la représentation midi.
 
 \begin{tiny}
 \begin{center}
@@ -120,13 +130,13 @@ On utilisera la bibliothèque $mido$ sous Python qui permet de représenter le f
 \end{tiny}
 
 \subsection{Principe}
-Comme dit précédemment, on s'intéresse simplement à l'activation ou non de notes. Pour cela, nous allons représenter un morceau de musique par une matrice. Celle-ci possède 128 lignes (une pour chaque note) et à un nombre de colonnes dépendant de la longueur du morceau. En midi, un morceau est décomposé en ticks d'horloge. L'état du morceau variant peu entre deux ticks, il convient de le rééchantillonner afin d'avoir une matrice exploitable. Chaque instant sera ainsi décrit par une colonne de la matrice. En regardant chaque ligne, on pourra savoir si une note est éteinte (0) ou si elle est activé, on a alors directement accès à sa vélocité (entre 1 et 127). Dans notre représentation, nous décrirons tous les tracks dans une seule matrice.
+Comme dit précédemment, on s'intéresse simplement à l'activation ou non de notes. Pour cela, nous allons représenter un morceau de musique par une matrice. Celle-ci possède 128 lignes (une pour chaque note) et à un nombre de colonnes dépendant de la longueur du morceau. En midi, un morceau est décomposé en ticks d'horloge. L'état du morceau variant peu entre deux ticks, il convient de le ré-échantillonner afin d'avoir une matrice exploitable. Chaque instant sera ainsi décrit par une colonne de la matrice. En regardant chaque ligne, on pourra savoir si une note est éteinte (0) ou si elle est activé, on a alors directement accès à sa vélocité (entre 1 et 127). Dans notre représentation, nous décrirons tous les tracks dans une seule matrice.
 
-Nous testerons notre implémentation sur les jigs déjà utilisées en abc après les avoir converties en midi (en utilisant abc2midi) ainsi que des morceaux de Mozart au piano. Les figures \ref{jig} et \ref{mozart} représentent les matrices d'une jig et d'un morceau de Mozart.
+Nous testerons notre implémentation sur les gigues déjà utilisées en abc après les avoir converties en midi (en utilisant abc2midi) ainsi que des morceaux de Mozart au piano. Les figures \ref{jig} et \ref{mozart} représentent les matrices d'une gigue et d'un morceau de Mozart.
 
 \begin{figure}[!h]
   \centering
-  \subfloat[Jig]{\includegraphics[width=0.5\textwidth]{images/chapter9/jig1.png}\label{jig}}
+  \subfloat[Gigue]{\includegraphics[width=0.5\textwidth]{images/chapter9/jig1.png}\label{jig}}
   \hfill
   \subfloat[Mozart]{\includegraphics[width=0.5\textwidth]{images/chapter9/mozart.png}\label{mozart}}
   \caption{Visualisation de fichiers midi}
@@ -136,7 +146,7 @@ Lors de l'apprentissage, on envoie en entrée du réseau une colonne de la matri
 
 
 \subsection{Résultats}
-On applique dans un premier temps l'apprentissage sur les jigs. On utilise deux cellules LSTM en série avec un état caché de 512. On met une couche de neurones pour adapter les données en sortie. Avec une activation linéaire on obtient ainsi des vecteurs de taille 128 en sortie où chaque élément représente l'intensité de la note correspondante. On lui donne en entrée des séquence de 10 vecteurs, cela signifie que l'on va déplier le réseau 10 fois à chaque fois. Un fait des batchs de 50 séquences. On utilise RMSprop comme algorithme d'optimisation avec un learning rate de 0.95. La figure \ref{midi_generated_jigs} permet de visualiser le fichier généré après le passage de 38 800 batchs lors de l'apprentissage.
+On applique dans un premier temps l'apprentissage sur les gigues. On utilise deux cellules LSTM en série avec un état caché de 512. On met une couche de neurones pour adapter les données en sortie. Avec une activation linéaire on obtient ainsi des vecteurs de taille 128 en sortie où chaque élément représente l'intensité de la note correspondante. On lui donne en entrée des séquence de 10 vecteurs, cela signifie que l'on va déplier le réseau 10 fois à chaque fois. On fait des batches de 50 séquences. On utilise RMSprop comme algorithme d'optimisation avec un learning rate de 0.95. La figure \ref{midi_generated_jigs} permet de visualiser le fichier généré après le passage de 38 800 batches lors de l'apprentissage.
 
 \begin{figure}[!ht]
   \centering
@@ -144,28 +154,28 @@ On applique dans un premier temps l'apprentissage sur les jigs. On utilise deux 
   \caption{Visualisation du fichier midi généré à partir des jigs après 38 800 batchs}
     \label{midi_generated_jigs}
 \end{figure}
-Le résultat obtenu possède bien le style des jigs avec un accompagnement répétitif à l'arrière. Cet accompagnement, souvent commun aux jigs, est très rapidement appris par le réseau. Certaines séquences mélodiques rappellent énormément certaines jigs de l'apprentissage.
+Le résultat obtenu possède bien le style des gigues avec un accompagnement répétitif à l'arrière. Cet accompagnement, souvent commun aux gigues, est très rapidement appris par le réseau. Certaines séquences mélodiques rappellent énormément certaines gigues de l'apprentissage.
 
-\vspace{2cm}
+\vspace{1cm}
 
-L'apprentissage de Mozart se fait sur plusieurs symphonies pour piano trouvées dans une base de données de midi. On utilise une fois de plus 2 cellules LSTM en série avec un état caché de 512. Cette fois on fait l'apprentissage sur des séquences de longueur 120. Une longueur plus grande est importante car les morceaux de Mozart sont moins répétitifs que les jigs. Cela permet au réseau de remonter plus loin dans les vecteurs passés et donc d'apprendre la structure de séquences plus longues. On passe des batchs comportant 10 séquences. On utilise là aussi l'algorithme RMSprop avec un learning rate de 0.95. \\
-La difficulté principale lors de l'apprentissage de Mozart est que la structure commune des morceaux est moins évidente que dans les jigs. De plus, il y a souvent des changements de rythmes/tempo dans les fichiers midi, ce qui est difficile à retranscrire dans la représentation matricielle avec l'implémentation actuelle. La figure \ref{midi_generated_mozart} représente le morceau généré après 79 500 passés.
+L'apprentissage de morceaux de Mozart se fait sur plusieurs symphonies pour piano trouvées dans une base de données de midi. On utilise une fois de plus 2 cellules LSTM en série avec un état caché de 512. Cette fois on fait l'apprentissage sur des séquences de longueur 120. Une longueur plus grande est importante car les morceaux de Mozart sont moins répétitifs que les gigues. Cela permet au réseau de remonter plus loin dans les vecteurs passés et donc d'apprendre la structure de séquences plus longues. On passe des batches comportant 10 séquences. On utilise là aussi l'algorithme RMSprop avec un learning rate de 0.95. \\
+La difficulté principale lors de l'apprentissage de morceaux de Mozart est que la structure commune des morceaux est moins évidente que dans les gigues. De plus, il y a souvent des changements de rythmes/tempo dans les fichiers midi, ce qui est difficile à retranscrire dans la représentation matricielle avec notre implémentation. La figure \ref{midi_generated_mozart} représente le morceau généré après 79 500 batches passés.
 
 \begin{figure}[!h]
   \centering
   \includegraphics[width=0.5\textwidth]{images/chapter9/midi_generated_mozart_79500.png}
-  \caption{Visualisation du fichier midi généré à partir des morceaux de Mozart après 79 500 batchs}
+  \caption{Visualisation du fichier midi généré à partir des morceaux de Mozart après 79 500 batches}
   \label{midi_generated_mozart}
 \end{figure}
 
-Il est nécessaire de passer un grand nombre de batchs avant d'avoir des résultats satisfaisants. Le morceau généré a une forme similaire aux morceaux du datasets. Néanmoins, l'écoute ne rend pas toujours aussi bien que les originaux. Un réseau plus complexe, un apprentissage plus long et une base de données plus importante pourraient permettre d'améliorer les résultats.
+Il est nécessaire de passer un grand nombre de batches avant d'avoir des résultats satisfaisants. Le morceau généré a une forme similaire aux morceaux du datasets. Néanmoins, l'écoute ne rend pas toujours aussi bien que les originaux. Un réseau plus complexe, un apprentissage plus long et une base de données plus importante pourraient permettre d'améliorer les résultats.
 
 
 \section{Génération de partitions}
 
-Dans cette partie, notre objectif est de générer des partitions de musique. Nous allons manipuler de la musique formellement. Les hauteurs des notes seront quantifiées, seules les hauteurs utilisées dans le solfège seront autorisées. De même pour les durées des notes, elles seront quantifiées.
+Dans cette partie, notre objectif est de générer des partitions de musique. Nous allons manipuler de la musique formellement. Les hauteurs des notes seront quantifiées, seules les hauteurs correspondant à des notes seront autorisées. De même, les durées des notes seront quantifiées.
 
-Notre démarche a été de commencer simplement en générant seulement des notes pour un seul instrument puis de complexifier notre architecture afin de générer des notes pour plusieurs instruments.
+Nous avons choisi de commencer en générant seulement des notes pour un unique instrument puis de complexifier notre architecture afin de générer des notes pour plusieurs instruments.
 
 L'ensemble de données utilisé pour l'apprentissage est principalement un ensemble de gigues. Cet ensemble a l'avantage d'être assez grand et les morceaux sont assez similaires entre eux ce qui facilite l'apprentissage du réseau. Quelques tentatives ont été effectuées sur d'autres ensembles de données mais leur petite taille ou manque de similarité n'a pas permis d'aboutir à des résultats concluants.
 
@@ -173,7 +183,7 @@ Dans toute cette partie, on utilise la bibliothèque \texttt{music21} qui permet
 
 \subsection{Génération de notes}
 
-La première étape dans la génération de partitions consiste à apprendre à un réseau à générer des suites de notes. Nous essaierons ensuite d'étendre l'architecture à plusieurs instruments.
+La première étape dans la génération de partitions consiste à entrainer un réseau pour qu'il génère des suites de notes. Nous essaierons ensuite d'étendre l'architecture à plusieurs instruments.
 
 \subsubsection{Architecture}
 
@@ -194,7 +204,7 @@ Nous utilisons alors une architecture assez proche de celle présentée dans la 
 \end{center}
 \end{figure}
 
-Il existe cependant une différence car il est nécessaire de générer une hauteur et une durée et non plus seulement un caractère comme dans la partie \ref{chapter7}. Afin de réaliser cela, on utilise deux fois la fonction $softmax$ en sortie. Une fois sur les $m$ premières coordonnées et une autre fois sur les $n$ dernières coordonnées. Il faut alors changer la fonction de coût de manière correspondante : on utilise la fonction de coût $softmaxCE$ indépendamment pour les deux parties du vecteur de sortie. On retrouvera un schéma détaillé de cette architecture sur la figure \ref{note_rnn}. Cette modélisation permet d'apprendre deux distribution de probabilités : une pour la hauteur et une pour la durée. Il faut noter que ces distributions de probabilités sont dépendantes car générées à partir de la sortie de la cellule LSTM.
+Il existe cependant une différence majeure avec la méthode décrite dans la partie \ref{chapter7} car il est nécessaire de générer une hauteur et une durée et non plus seulement un caractère. Afin de réaliser cela, on utilise deux fois la fonction $softmax$ en sortie. Une fois sur les $m$ premières coordonnées et une autre fois sur les $n$ dernières coordonnées. Il faut alors changer la fonction de coût de manière adéquate : on utilise la fonction de coût $softmaxCE$ indépendamment pour les deux parties du vecteur de sortie. On retrouvera un schéma détaillé de cette architecture sur la figure \ref{note_rnn}. Cette modélisation permet d'apprendre deux distributions de probabilité : une pour la hauteur et une pour la durée. Il faut noter que ces distributions de probabilité sont dépendantes car générées à partir de la sortie de la cellule LSTM.
 
 \begin{figure}[h!]
 \begin{center}
@@ -218,6 +228,8 @@ L'apprentissage a été effectué sur l'ensemble de gigues en ne conservant que 
 
 La structure de la mélodie correspond à celle d'une gigue. Les hauteurs des notes qui se suivent sont souvent proches. Néanmoins, à l'écoute, le résultat n'est pas d'une grande qualité car il manque la basse qui est un élément essentiel pour une gigue. Dans les sections suivantes, nous allons étudier les solutions que nous avons proposées afin de générer des notes pour plusieurs instruments.
 
+\medskip
+
 \subsection{Génération de notes pour plusieurs instruments en série}
 
 La première idée pour étendre le réseau précédent à la génération de notes pour plusieurs instruments est de générer les notes en série. C'est-à-dire que le réseau génère les notes une par une en choisissant pour quel instrument il génère la note à chaque fois.
@@ -231,7 +243,7 @@ Une note sera maintenant modélisée par un instrument, une hauteur et une duré
 \item les $n$ dernières la durée de la note.
 \end{itemize}
 
-On retrouvera l'architecture du réseau sur la figure \label{series_rnn}. On utilise ici trois fois la fonction $softmax$ en sortie afin de générer trois distributions de probabilités : une pour l'instrument, une pour la hauteur et une pour la durée. On utilise alors une fonction de coût idoine qui est la somme de trois $softmaxCE$. 
+On retrouvera l'architecture du réseau sur la figure \label{series_rnn}. On utilise ici trois fois la fonction $softmax$ en sortie afin de générer trois distributions de probabilité : une pour l'instrument, une pour la hauteur et une pour la durée. On utilise alors une fonction de coût idoine qui est la somme de trois $softmaxCE$. 
 
 \begin{figure}[h!]
 \begin{center}
@@ -241,30 +253,33 @@ On retrouvera l'architecture du réseau sur la figure \label{series_rnn}. On uti
 \end{center}
 \end{figure}
 
+Cette architecture peut très facilement s'étendre à plus de deux instruments.
+
 \subsubsection{Résultats}
 
 Les résultats sont obtenus après entrainement sur l'ensemble de gigues en séparant les notes des deux instruments.
 
-On retrouvera un exemple de partition générée par cette architecture.
+On retrouvera un exemple de partition générée par cette architecture figure \ref{serie_rnn}.
 
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.3]{images/chapter9/series_rnn_result.png}
 \caption{Partition générée par le réseau \textit{series-rnn}.}
+\label{serie_rnn}
 \end{center}
 \end{figure}
 
-On remarque que le réseau arrive bien à générer une mélodie et une basse. Les morceaux de musique ainsi générés sont d'assez bonne facture. Néanmoins, un des problèmes majeurs de cette architecture est que ce soit le réseau qui choisit l'instrument qui joue des notes à chaque pas de temps. Il peut avoir tendance à générer plus de notes pour un instrument qu'un autre.
+On remarque que le réseau arrive bien à générer une mélodie et une basse. Les morceaux de musique ainsi générés sont d'assez bonne facture. Néanmoins, un des problèmes majeurs de cette architecture est que le réseau choisit l'instrument qui joue des notes à chaque pas de temps. Il peut avoir tendance à générer plus de notes pour un instrument qu'un autre.
 
-Cette architecture peut très facilement s'étendre à plus de deux instruments.
+
 
 \subsection{Génération de notes pour plusieurs instruments en parallèle}
 
 Finalement la dernière architecture que nous avons considérée est la génération de notes en parallèle pour plusieurs instruments ce qui permet d'éviter que le réseau génère plus de notes pour un instrument qu'un autre.
 
-Au début, nous voulions qu'à chaque pas de temps le réseau génère une note pour chaque instrument. Cependant cette méthodologie a un grand problème qui est dû au fait que les notes peuvent avoir des durées très différentes. Ainsi même si chaque instrument aurait eu le même nombre de notes, leur partition respective auraient pu avoir des durées très différentes.
+Au début, nous voulions qu'à chaque pas de temps le réseau génère une note pour chaque instrument. Cependant cette méthodologie a un grand problème : les notes peuvent avoir des durées très différentes. Ainsi même si chaque instrument aurait eu le même nombre de notes, leur partition respective auraient pu avoir des durées très différentes.
 
-Afin de remédier à ce problème, nous avons fait le constat que l'unité de temps constante pour tous les instruments est la mesure. Notre idée est donc de générer en parallèle une mesure pour chaque instrument à chaque pas de temps du réseau.
+Afin de remédier à ce problème, nous avons constaté que l'unité de temps partagée par tous les instruments est la mesure. Notre idée est donc de générer en parallèle une mesure pour chaque instrument à chaque pas de temps du réseau.
 
 Le problème réside donc maintenant dans la représentation des mesures pour les mettre en entrée d'un réseau de neurones. En effet, les mesures peuvent contenir un nombre de notes très variable, il n'est donc pas évident de créer un encodage de taille fixe pour celles-ci. La solution que nous avons choisie est d'utiliser un réseau de neurones spécial, un autoencodeur, pour réaliser l'encodage et le décodage des mesures.
 
@@ -274,9 +289,9 @@ Un autoencodeur est un réseau qui prend une entrée, fournit une représentatio
 
 Souvent on utilise des autoencodeurs afin de faire de la compression ou de la réduction de dimension en choisissant une représentation intermédiaire de taille inférieure à la taille de l'entrée.
 
-Dans notre cas, nous utilisons des autoencodeurs afin de créer une représentation de taille fixe pour les séquences de notes de taille variable que sont les mesures.
+Dans notre cas, nous utilisons des autoencodeurs afin de créer une représentation de taille fixe pour les séquences de notes de taille variable qui correspondent à une mesure.
 
-Sur la figure \ref{autoencoder} se trouve l'architecture que nous avons utilisé pour notre autoencodeur. Le réseau peut se décomposer en deux parties l'encodeur et le décodeur. La représentation intermédiaire que nous utilisons est le vecteur $c$, sa taille est déterminée par la taille de l'état caché des cellules LSTM de l'encodeur. Lors de l'apprentissage, le réseau est entrainé comme une seule et unique partie. Cependant lors de la génération de mesures, nous allons d'abord utiliser seulement la partie encodeur pour encoder les mesures afin de les mettre en entrée du réseau. Puis, nous utiliserons seulement la partie décodeur afin de décoder les sorties du réseau. 
+Sur la figure \ref{autoencoder} est développée l'architecture que nous avons utilisé pour notre autoencodeur. Le réseau peut se décomposer en deux parties l'encodeur et le décodeur. La représentation intermédiaire que nous utilisons est le vecteur $c$, sa taille est déterminée par la taille de l'état caché des cellules LSTM de l'encodeur. Lors de l'apprentissage, le réseau est entrainé comme une seule et unique partie. Cependant lors de la génération de mesures, nous allons d'abord utiliser seulement la partie encodeur pour encoder les mesures afin de les mettre en entrée du réseau. Puis nous utiliserons seulement la partie décodeur afin de décoder les sorties du réseau. 
 
 \begin{figure}[h!]
 \begin{center}
@@ -292,7 +307,7 @@ Après apprentissage sur les mesures de l'ensemble des gigues, en utilisant deux
 
 Maintenant que nous disposons d'un encodage de taille fixe pour les mesures, nous pouvons aisément créer une architecture de réseau générant des mesures. Sur la figure \ref{measure_rnn} se trouve l'architecture que nous avons utilisée.
 
-En sortie du réseau, nous n'avons cette fois-ci pas utilisé la fonction $softmax$ afin de créer une distribution de probabilités car nous sommes dans un problème de régression : l'objectif de l'apprentissage est de générer un vecteur proche de celui de la mesure encodée en sortie. Ainsi, nous avons utilisé une fonction de coût quadratique.
+En sortie du réseau, nous n'avons cette fois-ci pas utilisé la fonction $softmax$ afin de créer une distribution de probabilité car nous sommes dans un problème de régression : l'objectif de l'apprentissage est de générer un vecteur proche de celui de la mesure encodée en sortie. Ainsi, nous avons utilisé une fonction de coût quadratique.
 
 \begin{figure}[h!]
 \begin{center}
@@ -322,18 +337,18 @@ Les morceaux générés sont de très bonne qualité. À notre avis, ils sont d'
 
 La génération de partitions a comme avantage de manipuler des données très quantifiées ce qui facilite grandement l'apprentissage et la qualité des morceaux générés.
 
-Cependant, cette avantage est aussi une de ses faiblesses. En effet, il est plus difficile avec cette méthode de générer des musiques pour plusieurs instruments. Un point que nous n'avons d'ailleurs pas eu le temps de traiter est la génération d'accords c'est-à-dire de plusieurs notes en même temps pour plusieurs instruments. Nous pensons qu'il est possible de le faire en modifiant un peu nos architectures précédentes.
+Cependant, cet avantage est aussi une de ses faiblesses. En effet, il est plus difficile avec cette méthode de générer des musiques pour plusieurs instruments. Un point que nous n'avons d'ailleurs pas eu le temps de traiter est la génération d'accords c'est-à-dire de plusieurs notes en même temps pour plusieurs instruments. Nous pensons qu'il est possible de le faire en modifiant un peu nos architectures précédentes.
 
 \section{Génération de signaux}
 \subsection{Présentation du format}
-Cette génération consiste à considérer la musique en tant que signal : cela nous permettra en effet de nous affranchir de la nécessité d'avoir un format de musique particulier et nous pourrons traiter directement des formats bien plus répandus comme le .mp3 ou le .wav. C'est précisément ce dernier que nous avons retenu, la librairie scipy de Python possédant des fonctions permettant d'appréhender très facilement ce format. L'entraînement se fera sur les coefficients de Fourier de ces signaux sonores, ceux-ci permettant de récupérer sous forme simple toute l'information relative aux morceaux.
+Cette génération consiste à considérer la musique en tant que signal : cela nous permettra en effet de ne pas avoir à choisir un format de musique particulier et nous pourrons traiter directement des formats bien plus répandus comme le .mp3 ou le .wav. C'est précisément ce dernier que nous avons retenu, la librairie \texttt{scipy} de Python possédant des fonctions permettant de manipuler très facilement ce format. L'entraînement se fera sur les coefficients de Fourier de ces signaux sonores, ceux-ci permettant de récupérer sous forme simple toute l'information relative aux morceaux.
 
 \subsection{Principe}
-La variété des morceaux .wav (durée, fréquence d'échantillonage...) et les contraintes matérielles (espace mémoire, temps de calcul...) nous ont poussé à devoir réaliser un prétraitement des données dans notre programme. Celui-ci sous échantillonne tout d'abord les morceaux à une fréquence $F_e = 16kHz$, la plupart des morceaux étant à $44kHz$ par défaut. Il s'agit ensuite de les découper en morceaux de durée T de l'ordre de la dizaine de millisecondes ($0,25$ dans notre implémentation). En effet, l'étape suivante consiste à appliquer la transformée de Fourier rapide sur chacun de ces morceaux élémentaires, il y aura donc $F_e \times T = 4000$ coefficients complexe au total, on voit donc tout l'intérêt du sous-échantillonage et du choix d'une durée T peu élevée. 
+La variété des morceaux .wav (durée, fréquence d'échantillonage...) et les contraintes matérielles (espace mémoire, temps de calcul...) nous ont poussé à réaliser un pré-traitement des données dans notre programme. Celui-ci sous-échantillonne tout d'abord les morceaux à une fréquence $F_e = 16kHz$, la plupart des morceaux étant à $44kHz$ par défaut. Il s'agit ensuite de les découper en morceaux de durée T de l'ordre de la dizaine de millisecondes ($0,25$ dans notre implémentation). En effet, l'étape suivante consiste à appliquer la transformée de Fourier rapide sur chacun de ces morceaux élémentaires, il y aura donc $F_e \times T = 4000$ coefficients complexe au total, on voit donc tout l'intérêt du sous-échantillonnage et du choix d'une durée T peu élevée. 
 
-L'étape suivante est de séparer les contributions réelles et imaginaires de chaque coefficient, que l'on place alors dans des vecteurs de taille 8000. On possèdera finalement pour chaque morceau élémentaire un vecteur contenant ses coefficients de Fourier. Pour obtenir le morceau initial, il s'agira tout simplement de reformer les coefficients de Fourier avec leurs parties réelles et imaginaires, d'appliquer la transformée de Fourier rapide inverse et de concaténer les morceaux élémentaires.
+L'étape suivante est de séparer les contributions réelles et imaginaires de chaque coefficient, que l'on place alors dans des vecteurs de taille 8000. On possèdera finalement pour chaque morceau élémentaire un vecteur contenant ses coefficients de Fourier. Pour obtenir le morceau initial, il faudra tout simplement reformer les coefficients de Fourier avec leurs parties réelles et imaginaires, d'appliquer la transformée de Fourier rapide inverse et de concaténer les morceaux élémentaires.
 
-Le réseau sera capable après entraînement de générer des morceaux de longueurs variables, décidée à l'avance par l'utilisateur, celle-ci étant simplement tributaire du nombre de vecteurs à générer.
+Le réseau sera capable après entraînement de générer des morceaux de longueurs variables, décidée à l'avance par l'utilisateur, celle-ci étant tributaire du nombre de vecteurs à générer.
 
 \subsection{Résultat}
 
@@ -347,6 +362,6 @@ La génération donne cependant un morceau très bruité dont la représentation
 \end{center}
 \end{figure}
 
-Deux explications sont alors possibles. La première serait qu'il y a un problème dans le programme. La seconde consisterait à dire que le bruit est la structure la plus évidente à apprendre, étant présente en permanence. Nous avons été également limités par la taille de notre état caché : lorsque nous avons essayé de l'augmenter de façon significative, des erreurs mémoires ont été observées, la place occupée étant trop importante. Or plus l'état caché est de taille importante plus les cellules seront capables de saisir les spécificités des liens entre les différents instants. On peut donc raisonnablement penser que la limitation viendrait de là. Le manque de temps et de matériel nous a empêché de vérifier cette possibilité.
+Deux explications sont alors envisageables. La première est qu'il y a un problème dans le programme. La seconde est que le bruit est la structure la plus évidente à apprendre, étant présente en permanence, et que c'est donc le bruit qui est appris en priorité. Nous avons été également limités par la taille de notre état caché : lorsque nous avons essayé de l'augmenter de façon significative, des erreurs mémoires ont été observées, la place occupée étant trop importante. Or plus l'état caché est de taille importante plus les cellules seront capables de saisir les spécificités des liens entre les différents instants. On peut donc raisonnablement penser que la limitation viendrait de là. Le manque de temps et de matériel nous a empêché de vérifier cette possibilité.
 
 
