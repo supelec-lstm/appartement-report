@@ -163,6 +163,81 @@ Il est nécessaire de passer un grand nombre de batchs avant d'avoir des résult
 
 \section{Génération de partitions}
 
+\subsection{Génération de notes}
+
+\subsubsection{Architecture}
+
+\begin{figure}[h!]
+\begin{center}
+\input{images/chapter9/note_rnn_simplified.tex}
+\caption{Architecture du réseau utilisé pour la génération de notes.}
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+\input{images/chapter9/note_rnn.tex}
+\caption{Architecture plus détaillée du réseau utilisé pour la génération de notes.}
+\end{center}
+\end{figure}
+
+\subsubsection{Résultats}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{images/chapter9/note_rnn_result.png}
+\caption{Mélodie générée par le réseau \textit{note-rnn}.}
+\end{center}
+\end{figure}
+
+\subsection{Génération de notes pour plusieurs instruments en série}
+
+\subsubsection{Architecture}
+
+\begin{figure}[h!]
+\begin{center}
+\input{images/chapter9/series_rnn.tex}
+\caption{Architecture du réseau utilisé pour la génération de notes pour plusieurs instruments en série.}
+\end{center}
+\end{figure}
+
+\subsubsection{Résultats}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{images/chapter9/series_rnn_result.png}
+\caption{Partition générée par le réseau \textit{series-rnn}.}
+\end{center}
+\end{figure}
+
+\subsection{Génération de notes pour plusieurs instruments en parallèle}
+
+\subsubsection{Autoencodeur de mesures}
+
+\begin{figure}[h!]
+\begin{center}
+\input{images/chapter9/autoencoder.tex}
+\caption{Architecture d'un autoencodeur de séquences.}
+\end{center}
+\end{figure}
+
+\subsubsection{Architecture}
+
+\begin{figure}[h!]
+\begin{center}
+\input{images/chapter9/measure_rnn.tex}
+\caption{Architecture du réseau utilisé pour la génération de notes pour plusieurs instruments en parallèle.}
+\end{center}
+\end{figure}
+
+\subsubsection{Résultats}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{images/chapter9/measure_rnn_result.png}
+\caption{Partition générée par le réseau \textit{measure-rnn}.}
+\end{center}
+\end{figure}
 
 \section{Génération de signaux}
 \subsection{Présentation du format}
