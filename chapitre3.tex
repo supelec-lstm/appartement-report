@@ -495,12 +495,46 @@ $$
 \end{proof}
 
 \begin{proposition}
-Si $y = sigmoidCE(x_1, x_2)$ alors $\frac{\partial E}{\partial x_1} = -\frac{\partial E}{\partial y} \odot \left(\frac{x_2}{1-x_2}\right)$ et $\frac{\partial E}{\partial x_2} = -\frac{\partial E}{\partial y} \odot \left(\frac{x_1}{x_2} - \frac{1-x_1}{1-x_2}\right)$.
+Si $y = sigmoidCE(x_1, x_2) = -\sum_{i,j}{x_{1_{i,j}}log(x_{2_{i,j}})+(1-x_{1_{i,j}})log(1-x_{2_{i,j}})}$ alors $\frac{\partial E}{\partial x_1} = -\frac{\partial E}{\partial y} \odot \left(\frac{x_2}{1-x_2}\right)$ et $\frac{\partial E}{\partial x_2} = -\frac{\partial E}{\partial y} \odot \left(\frac{x_1}{x_2} - \frac{1-x_1}{1-x_2}\right)$.
 \end{proposition}
 
+\begin{proof}
+$$
+\forall i, j, \frac{\partial E}{\partial x_{1_{i,j}}} = \frac{\partial E}{\partial y}\frac{\partial y}{\partial x_{1_{i,j}}} = -\frac{\partial E}{\partial y}(log(x_{2_{i,j}}) - log(1-x_{2_{i,j}})) = -\frac{\partial E}{\partial y}log(\frac{x_{2_{i,j}}}{1-x_{2_{i,j}}})
+$$
+d'où en appliquant la fonction $log$ et la division terme à terme, on a :
+$$
+\frac{\partial E}{\partial x_1} = -\frac{\partial E}{\partial y} \odot \left(\frac{x_2}{1-x_2}\right)
+$$
+$$
+\forall i, j, \frac{\partial E}{\partial x_{2_{i,j}}} = \frac{\partial E}{\partial y}\frac{\partial y}{\partial x_{2_{i,j}}} = -\frac{\partial E}{\partial y}\left(\frac{x_{1_{i,j}}}{x_{2_{i,j}}}+\frac{1-x_{1_{i,j}}}{1-x_{2_{i,j}}}\right)
+$$
+d'où en utilisant la division terme à terme, on a :
+$$
+\frac{\partial E}{\partial x_2} = -\frac{\partial E}{\partial y} \odot \left(\frac{x_1}{x_2} - \frac{1-x_1}{1-x_2}\right)
+$$
+\end{proof}
+
 \begin{proposition}
-Si $y = x_1 \odot x_2$ alors $\frac{\partial E}{\partial x_1} = -\frac{\partial E}{\partial y} \odot log(x_2)$ et $\frac{\partial E}{\partial x_2} = -\frac{\partial E}{\partial y} \odot \left(\frac{x_1}{x_2}\right)$.
+Si $y = softmaxCE(x_1, x_2) = -\sum_{i,j}{x_{1_{i,j}}log(x_{2_{i,j}})}$ alors $\frac{\partial E}{\partial x_1} = -\frac{\partial E}{\partial y} \odot log(x_2)$ et $\frac{\partial E}{\partial x_2} = -\frac{\partial E}{\partial y} \odot \left(\frac{x_1}{x_2}\right)$.
 \end{proposition}
+
+\begin{proof}
+$$
+\forall i, j, \frac{\partial E}{\partial x_{1_{i,j}}} = \frac{\partial E}{\partial y}\frac{\partial y}{\partial x_{1_{i,j}}} = -\frac{\partial E}{\partial y}log(x_{2_{i,j}})
+$$
+d'où en appliquant la fonction $log$ terme à terme, on a :
+$$
+\frac{\partial E}{\partial x_1} = -\frac{\partial E}{\partial y} \odot log(x_2)
+$$
+$$
+\forall i, j, \frac{\partial E}{\partial x_{2_{i,j}}} = \frac{\partial E}{\partial y}\frac{\partial y}{\partial x_{2_{i,j}}} = -\frac{\partial E}{\partial y}\frac{x_{1_{i,j}}}{x_{2_{i,j}}}
+$$
+d'où en utilisant la division terme à terme, on a :
+$$
+\frac{\partial E}{\partial x_2} = -\frac{\partial E}{\partial y} \odot \left(\frac{x_1}{x_2}\right)
+$$
+\end{proof}
 
 \section{La classe Graph}
 
