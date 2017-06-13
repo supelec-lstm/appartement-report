@@ -142,7 +142,7 @@ W = W - \eta \sum{\frac{\partial J}{\partial W}}
 
 Une première implémentation des LSTM a été réalisé en conservant le plus possible le concept de cellule indépendante. Ainsi une classe Weights contient tous les poids de la cellule et la classe Lstmcell se contentera elle de calculer la propagation et la rétropropagation (Voir Figure 4.4 de la cellule LSTM pour situer les poids).
 
-Si cette implémentation intuitive fonctionne et donne des résultats satisfaisants, elle n'est cependant pas très adapté à la création de réseaux de cellules LSTM. C'est pour cela que nous nous sommes lancés dans une seconde implémentation, plus pratique et flexible.
+Si cette implémentation intuitive fonctionne et donne des résultats satisfaisants, elle n'est cependant pas très adaptée à la création de réseaux de cellules LSTM. C'est pour cela que nous nous sommes lancés dans une seconde implémentation, plus pratique et flexible.
 
 \begin{figure}[h!]
 \begin{center}
@@ -197,7 +197,6 @@ Nous avons donc pu soumettre des cellules LSTM à l'apprentissage de la grammair
 
 Sur la courbe de la figure \ref{Reber_Sym_LSTM} , il évident qu'une cellule LSTM seule peut apprendre parfaitement une grammaire de Reber symétrique, ce qui n'était pas le cas des réseaux de neurones simples utilisant les algorithmes RTRL et BPTT. En effet ces réseaux ne pouvaient que prédire la moitié des transitions (voir la courbe \ref{Reber_Sym_RTRL_BPTT} ).
 
-Les LSTM peuvent donc apprendre parfaitement une grammaire de Reber au contraire des deux algorithmes appliqués à des réseaux récurrents simples. On peut aussi noter que que l'apprentissage se fait très rapidement et de manière efficace. Les oscillations sont moins conséquentes et surtout il n'y a pas de palier, ce qui montre l'efficacité de l'apprentissage.
-
+Les LSTM peuvent donc apprendre parfaitement une grammaire de Reber au contraire des deux algorithmes appliqués à des réseaux récurrents simples. On peut aussi noter que que l'apprentissage se fait très rapidement et de manière efficace. 
 
 Cela montre bien la force des LSTM qui peuvent donc prendre en compte de manière efficace le contexte afin de prédire une suite à ce contexte. C'est dans ce cadre là que nous nous sommes penchés vers la génération de séquence afin de pouvoir vraiment tester les possibilités offertes par celles-ci.
