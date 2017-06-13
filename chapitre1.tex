@@ -36,7 +36,7 @@ $$
 avec $\hat{p}_{data}$ est la distribution empirique dans l'ensemble des exemples.
 \end{definition}
 
-Et l'erreur dans l'absolue, sur toutes les valeurs possibles :
+Et l'erreur dans l'absolu, sur toutes les valeurs possibles :
 
 \begin{definition}[Erreur absolue]
 $$
@@ -77,10 +77,10 @@ qui servira comme proxy de $E_{out}$ et qui permettra d'estimer si notre modèle
 Nous utiliserons cette dernière solution dans la suite du document. Finalement il est à noter que nous parlerons indifféremment de fonction d'erreur ou de fonction de coût.
 
 \section{Inspiration biologique}
-C'est à partir de l'hypothèse que le comportement intelligent humain est le résultat de la structure et des éléments de bases du système nerveux central (que sont les neurones), que l’on a développé les réseaux de neurones artificiels. A la suite des observations biologiques, les scientifiques ont schématisé un neurone en trois parties : les dendrites qui constituent les entrées de l’information créée par un stimulus, un corps où l’information est traitée, et l’axone qui représente la voie de sortie de l’information vers d’autres unités neuronales. Les synapses permettent le contact entre 2 neurones, chacun d'entre eux intègrant en permanence jusqu'à un millier de signaux synaptiques. Ces signaux n'opèrent pas de manière linéaire : il y a un effet de seuil. 
+C'est à partir de l'hypothèse selon laquelle le comportement intelligent humain est le résultat de la structure et des éléments de bases du système nerveux central, que l’on a développé les réseaux de neurones artificiels. A la suite des observations biologiques, les scientifiques ont schématisé un neurone en trois parties : les dendrites qui constituent les entrées de l’information créée par un stimulus, un corps où l’information est traitée, et l’axone qui représente la voie de sortie de l’information vers d’autres neurones. Les synapses permettent le contact entre deux neurones, chacun d'entre eux intégrant en permanence jusqu'à un millier de signaux synaptiques. Ces signaux n'opèrent pas de manière linéaire : il y a un effet de seuil. 
 Les réseaux de neurones artificiels ont été développés à partir de cette vision et leur but est de modéliser le mécanisme d'apprentissage et de traitement de l'information qui se produit dans le cerveau humain.
 
-\begin{figure}[!h]
+\begin{figure}[h!]
 \begin{center}
 	{\includegraphics[scale=0.4]{images/chapter1/neurone_bio.png}\label{neurone}}
   \caption{Conception d'un neurone artificiel à partir d'un neurone biologique \\ Source : \textit{Les réseaux de neurones artificiels, Introduction au connexionnisme, Claude Touzet}}
@@ -113,7 +113,7 @@ La figure \ref{neurone} montre une représentation graphique d'un neurone.
 
 \begin{figure}[H]
 \begin{center}
-\input{"images/chapter1/neurone.tex"}
+\resizebox{1\linewidth}{!}{\input{"images/chapter1/neurone.tex"}}
 \caption{Représentation graphique d'un neurone. Le biais est ici considéré comme le poids associé à une entrée constante égale à 1.}
 \label{neurone}
 \end{center}
@@ -125,9 +125,11 @@ Les principales fonctions d'activation sont :
 \item $Id : x \mapsto x$ dite identité;
 \item $u : x \mapsto 1_{x \geq 0}$ dite échelon ou fonction de Heavyside ;
 \item $\tanh : x \mapsto \tanh(x)$ dite tangente hyperbolique ;
-\item $\sigma : x \mapsto \frac{1}{1+\exp(-x)}$ dite sigmoïde de part de sa forme en S;
-\item $ReLU : x \mapsto max(0, x)$ dite ReLU (rectified linear unit).
+\item $\sigma : x \mapsto \frac{1}{1+\exp(-x)}$ dite sigmoïde ;
+\item $ReLU : x \mapsto max(0, x)$ dite ReLU (Rectified Linear Unit).
 \end{itemize}
+
+\medbreak
 
 La figure \ref{fonctions_activation} montre les graphes de ces différentes fonctions et permet de visualiser les différences entre celles-ci.
 
@@ -145,8 +147,10 @@ La figure \ref{fonctions_activation} montre les graphes de ces différentes fonc
 
 Il est possible de se servir d'un neurone seul pour résoudre des problèmes de classification ou de régression. Détaillons quelques exemples importants.
 
+\medbreak
+
 \begin{example}[Perceptron]
-Un neurone avec comme fonction d'activation un échelon sépare l'espace en deux demis espaces séparés par un hyperplan de vecteur normal $w$. En effet :
+Un neurone avec comme fonction d'activation un échelon sépare l'espace en deux par un hyperplan de vecteur normal $w$. En effet :
 
 \begin{itemize}
 \item $ \forall x \in \mathbb{R}^n, w^Tx < 0 \Rightarrow f(x) = 0$
@@ -164,8 +168,10 @@ La figure \ref{hyperplan} illustre cette séparation. Ce cas particulier de neur
 \end{center}
 \end{figure}
 
+\vspace{1cm}
+
 \begin{example}[Régression logistique]
-Si la fonction d'activation est une sigmoïde, la sortie du neurone peut être interprétée comme la probabilité $p(y=1|x)$. Par conséquent, le neurone classifie un exemple dans la classe 1 si la sortie est supérieure à $0.5$ et dans la classe 0 sinon. On parle ici de régression logistique. L'espace est toujours séparée en deux parties par un hyperplan, $H = \{x, f(x)=0.5\}$. Cependant maintenant les valeurs associées aux entrées sont continues entre $0$ et $1$. La figure \ref{regression_logistique} permet de visualiser cette différence. Dans la suite de ce document, des graphes de ce type seront utilisés à plusieurs reprises afin de pouvoir visualiser l'action d'un réseau de neurones.
+Si la fonction d'activation est une sigmoïde, la sortie du neurone peut être interprétée comme la probabilité $p(y=1|x)$. Par conséquent, le neurone classifie un exemple dans la classe 1 si la sortie est supérieure à $0.5$ et dans la classe 0 sinon. On parle ici de régression logistique. L'espace est toujours séparé en deux parties par un hyperplan, $H = \{x, f(x)=0.5\}$. Cependant les valeurs associées aux entrées sont désormais continues entre $0$ et $1$. La figure \ref{regression_logistique} permet de visualiser cette différence. Dans la suite de ce document, des graphes de ce type seront utilisés à plusieurs reprises afin de pouvoir visualiser l'action d'un réseau de neurones.
 \end{example}
 
 \begin{figure}[H]
@@ -180,7 +186,7 @@ Si la fonction d'activation est une sigmoïde, la sortie du neurone peut être i
 Finalement, si la fonction d'activation est la fonction identité, le neurone sera capable d'atteindre toutes les valeurs réelles. Il pourra donc résoudre un problème de régression. Il s'agit de la régression linéaire.
 \end{example}
 
-Le point commun entre tous les neurones est qu'ils sont seulement capable de modéliser des interactions linéaires entre les entrées. Cependant, à partir d'un ensemble de données, il est possible d'utiliser des neurones pour modéliser des interactions non linéaires entre les différentes composantes des entrées. Pour cela, il faut transformer les entrées afin de créer de nouvelles composantes. Par exemple, prenons un ensemble de données tel que les points ont le label $1$ s'ils sont dans le disque de rayon 0.5 et de centre $(0;0)$ et $0$ sinon. Un exemple d'un tel ensemble de donnée est visible sur la figure \ref{disque}. En l'état, cet ensemble n'est pas linéairement séparable et donc un neurone simple ne peut pas le classifier correctement. Cependant si une transformation telle que $x \mapsto (x_1, x_2, x_1x_2, x_1^2, x_2^2)$ est appliquée aux exemples. Les points sont maintenant linéairement séparables dans ce nouvel espace. Il est alors possible d'utiliser un neurone afin de classifier correctement l'ensemble. Ces résultats sont présents sur la figure \ref{disque}.
+Le point commun entre tous les neurones est qu'ils sont seulement capables de modéliser des interactions linéaires entre les entrées. Cependant, à partir d'un ensemble de données, il est possible d'utiliser des neurones pour modéliser des interactions non linéaires entre les différentes composantes des entrées. Pour cela, il faut transformer les entrées afin de créer de nouvelles composantes. Par exemple, prenons un ensemble de données tel que les points ont le label $1$ s'ils sont dans le disque de rayon 0.5 et de centre $(0;0)$ et $0$ sinon. Un exemple d'un tel ensemble de données est visible sur la figure \ref{disque}. En l'état, cet ensemble n'est pas linéairement séparable et donc un neurone simple ne peut pas le classifier correctement. Cependant si une transformation telle que $x \mapsto (x_1, x_2, x_1x_2, x_1^2, x_2^2)$ est appliquée aux exemples, les points sont alors linéairement séparables dans ce nouvel espace. Il est alors possible d'utiliser un neurone afin de classifier correctement l'ensemble. Ces résultats sont présents sur la figure \ref{disque}.
 
 \begin{figure}[H]
 \begin{center}
@@ -207,7 +213,7 @@ y_{j} = f_{j}((y_{i})_{i \in Pa(j)})
 \label{eq_propagation}
 \end{equation} 
 
-Il existe certaines classes particulière de réseau de neurones. Tout d'abord, s'il contient des cycles, il sera dit récurrent. Dans le cas contraire, on parlera de réseau \textit{feedforward}. Puis s'il est possible de l'organiser sous forme de couches où les sorties des neurones d'une couche sont les entrées de la couche suivante, on parle de réseau de neurones multicouche dit aussi MLP (multilayer perceptron). Des exemples des différents types de réseaux sont présents sur la figure \ref{reseaux}.
+Il existe certaines classes particulières de réseau de neurones. Tout d'abord, s'il contient des cycles, il sera dit récurrent. Dans le cas contraire, on parlera de réseau \textit{feedforward}. Puis, s'il est possible de l'organiser sous forme de couches où les sorties des neurones d'une couche sont les entrées de la couche suivante, on parle de réseau de neurones multicouche dit aussi MLP (multilayer perceptron). Des exemples des différents types de réseaux sont présents sur la figure \ref{reseaux}.
 
 \begin{figure}
 \begin{center}
@@ -220,7 +226,7 @@ Il existe certaines classes particulière de réseau de neurones. Tout d'abord, 
 \end{center}
 \end{figure}
 
-Dans les sections suivantes, seront étudiés les algorithmes pour évaluer un réseau de neurones puis pour l’entraîner. Cependant, seulement les algorithmes dans le cadre d'un réseau de neurones feedforward seront abordés. Les algorithmes concernant les réseaux de neurones récurrent seront abordés dans la partie \autoref{chap:Réseaux de neurones récurrents}.
+Dans les sections suivantes seront étudiés les algorithmes pour évaluer la sortie d'un réseau de neurones puis pour l’entraîner. Nous nous limiterons aux algorithmes d'entrainement des réseaux de neurones feedforward. Les algorithmes concernant les réseaux de neurones récurrent seront abordés dans le \autoref{chap:Réseaux de neurones récurrents}.
 
 \section{Propagation}
 
@@ -228,7 +234,7 @@ L'algorithme de propagation dans le cadre des réseaux feedforward est très sim
 
 Ainsi, un premier algorithme naïf est :
 
-\begin{algorithm} 
+\begin{algorithm}[H]
 \begin{algorithmic}
 \Procedure{$evaluer\_reseau$}{$\mathcal{N}(V, A, V_{in}, V_{out}, f), x$}
 \Function{$evaluer\_neurone$}{$j$}
@@ -245,12 +251,12 @@ Ainsi, un premier algorithme naïf est :
 \EndFor
 \EndProcedure
 \end{algorithmic} 
-\caption{Algorithme naïf d'évaluation d'un réseau de neurone feedforward. Il prend en entrée un réseau de neurone et un vecteur d'entrée pour le réseau de neurone.}
+\caption{Algorithme naïf d'évaluation d'un réseau de neurones feedforward. Il prend en entrée un réseau de neurones et un vecteur d'entrée pour le réseau.}
 \end{algorithm}
 
-Cette version n'est pas du tout efficace, elle calcule plusieurs fois la sortie de chaque neurone. Si le graphe est densément connecté, l'algorithme aura un coût temporel extrêmement élevé. Une amélioration simple consiste à rajouter de la mémoïsation afin de garantir que la sortie de chaque neurone sera calculée au plus une fois. Le pseudo-code de cet algorithme correspond à l'algorithme \ref{propagation_memoisation}.
+Cette version n'est pas du tout efficace, elle calcule plusieurs fois la sortie de chaque neurone. Si le graphe est densément connecté, l'algorithme aura un coût temporel extrêmement élevé. Une amélioration simple consiste à rajouter de la mémoïsation afin de garantir que la sortie de chaque neurone sera calculée au plus une fois. Le pseudo-code de cet algorithme correspond à l'algorithme \ref{mem}.
 
-\begin{algorithm} 
+\begin{algorithm}[H]
 \begin{algorithmic}
 \Procedure{$evaluer\_reseau$}{$\mathcal{N}(V, A, V_{in}, V_{out}, f), x$}
 \Function{$evaluer\_neurone$}{$j$}
@@ -272,8 +278,8 @@ Cette version n'est pas du tout efficace, elle calcule plusieurs fois la sortie 
 \EndFor
 \EndProcedure
 \end{algorithmic}
-\caption{Algorithme d'évaluation d'un réseau de neurone feedforward utilisant la mémoïsation afin de ne pas recalculer plusieurs fois la sortie d'un neurone.}
-\label{propagation_memoisation}
+\caption{Algorithme d'évaluation d'un réseau de neurones feedforward utilisant la mémoïsation afin de ne pas recalculer plusieurs fois la sortie d'un neurone.}
+\label{mem}
 \end{algorithm}
 
 Cet algorithme calcule au plus une fois la sortie de chaque neurone et il appelle $evaluer\_neurone$ au plus $|A|$ fois, il a donc un coût temporel en $O(|V|+|A|)$. Ce qui est a priori le coût optimal.
@@ -423,7 +429,7 @@ On obtient que :
 NLL(\theta) = \sum_{i=1}^{N}{H(\tau^{(y^{(i)})}, \hat{y}(x^{(i)}))}
 \end{equation}
 
-On a remplacé $y$ par un vecteur prenant un $1$ à la position $y$, une telle transformation est couramment appelé encodage \textit{one-hot}. 
+On a remplacé $y$ par un vecteur nul possédant un $1$ à la position $y$, une telle transformation est couramment appelé encodage \textit{one-hot}. 
 
 Notre fonction de coût sera donc :
 
@@ -435,9 +441,9 @@ Avec $e : (x, y) \mapsto H(\tau^x, y)$. Cette fonction de coût est naturellemen
 
 \section{Descente du gradient}
 
-Étant donné une fonction de coût $E$, l'objectif de l'apprentissage est de déterminer les poids permettant de minimiser $E$. Dans l'idéal, il faudrait pouvoir exprimer $E$ en fonction des poids, dériver $E$ par rapport à chaque poids puis chercher les valeurs des poids atteignant les minimas. Malheureusement, dans la plupart des cas, il est impossible d'avoir de telles solutions analytiques.
+Étant donné une fonction de coût $E$, l'objectif de l'apprentissage est de déterminer les poids permettant de minimiser $E$. Dans l'idéal, il faudrait pouvoir exprimer $E$ en fonction des poids, dériver $E$ par rapport à chaque poids puis chercher les valeurs des poids atteignant les minima. Malheureusement, dans la plupart des cas, il est impossible d'avoir de telles solutions analytiques.
 
-Une réponse à ce problème est la descente du gradient. Le principe est simple, il s'agit d'un procédé itératif consistant à modifier légèrement les valeurs des poids afin qu'à chaque étape $E$ décroisse.  En notant, $\theta$ le vecteur contenant les poids de tous les neurones du réseau. La valeur de ces poids changera à chaque itération, par conséquent, notons $\theta(t)$ la valeur de $\theta$ à l'itération $t$. La direction selon laquelle $E$ augmente le plus est $\frac{\partial E}{\partial \theta}$, la direction selon laquelle $E$ décroît le plus est donc $-\frac{\partial E}{\partial \theta}$. Si les poids sont modifiés en se déplaçant dans cette direction d'un pas $\eta(t)$ assez petit, le coût diminuera. L'équation d'évolution est donnée par \ref{mise_a_jour_poids}.
+Une solution à ce problème est la descente du gradient, un procédé itératif consistant à modifier légèrement les valeurs des poids afin qu'à chaque étape $E$ décroisse.  En notant, $\theta$ le vecteur contenant les poids de tous les neurones du réseau, la valeur de ces poids changera à chaque itération, par conséquent, notons $\theta(t)$ la valeur de $\theta$ à l'itération $t$. La direction selon laquelle $E$ augmente le plus est $\frac{\partial E}{\partial \theta}$, la direction selon laquelle $E$ décroît le plus est donc $-\frac{\partial E}{\partial \theta}$. Si les poids sont modifiés en se déplaçant dans cette direction d'un pas $\eta(t)$ assez petit, le coût diminuera. L'équation d'évolution est donnée par \ref{mise_a_jour_poids}.
 
 \begin{equation}
 \theta(t+1) = \theta(t) - \eta(t) \frac{\partial E}{\partial \theta}
@@ -448,7 +454,7 @@ Il existe plusieurs stratégies afin de choisir le pas $\eta(t)$. Dans un premie
 
 \section{Rétropropagation du gradient}
 
-L'application de l'algorithme précédant nécessite le calcul des dérivées partielles par rapport à chacun des poids du réseau de neurones. Prenons le neurone $j$ du réseau de neurone. Son entrée est notée $x_j$, sa sortie $y_j$, sa fonction d'activation $g_j$ et ses poids $w_j$. De plus, définissons la quantité intermédiaire $s_j = w_j^Tx_j$. La formule \ref{sortie_neurone2} appliquée à ce neurone est donc $y_j = g_j(w_j^Tx_j) = g(s_j)$. En utilisant la règle de la chaîne, on obtient que :
+L'application de l'algorithme précédant nécessite le calcul des dérivées partielles par rapport à chacun des poids du réseau de neurones. Prenons le neurone $j$ du réseau. Son entrée est notée $x_j$, sa sortie $y_j$, sa fonction d'activation $g_j$ et ses poids $w_j$. De plus, définissons la quantité intermédiaire $s_j = w_j^Tx_j$. La formule \ref{sortie_neurone2} appliquée à ce neurone est donc $y_j = g_j(w_j^Tx_j) = g(s_j)$. En utilisant la règle de la chaîne, on obtient :
 
 \begin{equation}
 \frac{\partial E}{\partial w_j} = \frac{\partial E}{\partial y_j}\frac{\partial y_j}{\partial s_j}\frac{\partial s_j}{\partial w_j}
@@ -478,7 +484,7 @@ La formule \ref{formule_retropropagation} montre que si on calcule $\frac{\parti
 
 Finalement, en utilisant les formules \ref{dEdw}, \ref{formule_retropropagation} et \ref{dEdx}, il est possible de rétropropager le gradient et de calculer $\frac{\partial E}{\partial w_j}$ pour tout neurone $j$. On en déduit l'algorithme suivant :
 
-\begin{algorithm} 
+\begin{algorithm}[H]
 \begin{algorithmic}
 \Procedure{$retropropager\_gradient$}{$\mathcal{N}(V, A, V_{in}, V_{out}, f), x, y$}
 \Function{$calculer\_gradient$}{$j$}
